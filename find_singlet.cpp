@@ -1,83 +1,61 @@
 #include <iostream>
 #include <Eigen/Dense>
+#include <cmath>
+#include <cassert>
 
 using namespace std;
 using namespace Eigen;
 
-VectorXi inttobin(int theValue)
+VectorXi inttobin(int theValue, int size)
 {
-  VectorXi v1(12);
-  for (int i = 0; i < 12; ++i)
-  {
-      v1(i) = theValue & (1 << i) ? 1 : 0;
-  }
+  VectorXi v1(2*size);
+  for (int i = 0; i < 2*size; ++i)  v1(i) = theValue & (1 << i) ? 1 : 0;
   return v1;
 }
 
-int factorial(int x)
+VectorXi seminvert(VectorXi  v)
 {
-  int fac;
-  x>0 ? fac = x*factorial(x-1) : fac = 1;
-  return fac;
+  if(v.size()%2==1) exit(1);
+  for(int i=v.size()/2; i < v.size(); i++) v(i)==1? v(i)=-1:v(i) =0;
+  return v;
 }
 
-void progress_percent(float initial_i, float final_i, float i)
+long int choose(int x)
 {
-   int progress_percent;
-   progress_percent=int((i)*100/(final_i-initial_i));
-   cout.flush();
-   cout << "\r [ "<< progress_percent+1 << "% ] ";
-   for(int i=0; i<progress_percent; i++)
-   {
-     cout << "#";
-   }
+  long int prod =1;
+  for(int i=x+1; i<=2*x; i++) prod*=i;
+  for(int i=1; i<=x; i++) prod /= i;
+  return prod;
 }
 
 
 int main()
 {
+  cout << "Enter lattice size: ";
   int size;
   cin >> size;
 
-  int no_of_combinations,i1,i2;
-  no_of_combinations = i1=i2=0;
+  long int no_of_combinations,i_min,i_max;
+  i_min=i_max=0; no_of_combinations = choose(size);
 
-  for(int i=0; i<size; i++)
-  {
-    i1+= pow(2,i);
-  }
 
-  for(int i=size; i<2*size; i++)
-  {
-    i2+= pow(2,i);
-  }
+  for(int i=0; i<size; i++) i_min += pow(2,i);
+  for(int i=size; i<2*size; i++) i_max += pow(2,i);
 
-  int one_count; int count = 0;
-  no_of_combinations = factorial(2*size)/pow(factorial(size),2);
-  int* arr= new int[no_of_combinations];
+  int count = 0;
+  int* arr= new (nothrow) int[no_of_combinations];
 
-  for(int i=i1; i<=i2; i++)
-  {
-    one_count = 0;
-    for(int j=0; j<2*size; j++)
-      if( i & (1 << j) ) one_count++;
-    if(one_count==size) {arr[count] = i; count++; }
-  }
-  cout << count << endl << endl;
+  for(int i=i_min; i<=i_max; i++)
+    if(inttobin(i,size).sum()==size) {arr[count] = i; count++;}
 
-  int t1, t2;
+  assert(count==no_of_combinations);
+  cout << "Half-filling states: " << count << endl << endl;
+
   int singlet_count=0;
   for(int i=0; i<no_of_combinations; i++)
-    {
-      t1 = t2=0;
-      for(int j=0; j<size; j++)
-        if(arr[i] & (1 << j)) t1++;
-      for(int j=size; j<2*size; j++)
-        if(arr[i] & (1 << j)) t2++;
-      if(t1==t2) singlet_count++ ;
-
-    }
+     if (seminvert(inttobin(arr[i],size)).sum()==0) singlet_count++;
 
   cout << "Singlets: " << singlet_count << endl;
+  delete []arr;
 
 }
