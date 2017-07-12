@@ -49,7 +49,7 @@ int main()
     if(inttobin(i,size).sum()==size) {arr[count] = i; count++;}
 
   assert(count==no_of_combinations);
-  cout << "Half-filling states: " << count << endl << endl;
+  cout << "Half-filling states: " << count << endl;
 
   int singlet_count=0;
   for(int i=0; i<no_of_combinations; i++)
