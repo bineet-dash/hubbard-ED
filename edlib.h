@@ -1,5 +1,5 @@
-#ifndef _SPALIB_H_INCLUDED_
-#define _SPALIB_H_INCLUDED_
+#ifndef _EDLIB_H_INCLUDED_
+#define _EDLIB_H_INCLUDED_
 
 
 #include <iostream>
@@ -14,7 +14,7 @@ VectorXi inttobin(int theValue, int size);
 int bintoint(VectorXi v);
 
 
-VectorXi seminvert(VectorXi  v);
+VectorXf seminvert(VectorXi  v);
 long int choose(int x);
 
 #endif
