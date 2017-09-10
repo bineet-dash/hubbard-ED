@@ -2,12 +2,13 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <cassert>
+#include "common.h"
 
 using namespace std;
 using namespace Eigen;
 
 
-VectorXi inttobin(int theValue, int size)
+VectorXi inttobin(int theValue)
 {
   VectorXi v(2*size);
   for (int i = 0; i < 2*size; ++i)  v(i) = theValue & (1 << i) ? 1 : 0;
