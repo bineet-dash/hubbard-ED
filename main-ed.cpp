@@ -1,5 +1,6 @@
-  #include <iostream>
+#include <iostream>
 #include <Eigen/Dense>
+#include <cassert>
 #include <cmath>
 #include "edlib.h"
 #include "common.h"
@@ -9,6 +10,7 @@ using namespace Eigen;
 
 int size;
 float t=1;
+float U;
 
 class basis {
   int x; float spin;
@@ -98,8 +100,9 @@ void select_spin(std::vector<basis> master, std::vector<basis>& v, float spin)
 int main()
 {
 
-  cout << "Enter lattice size: ";
-  cin >> size;
+  cout << "Enter lattice size and U: ";
+  cin >> size >> U;
+  assert(size%2==0);
 
   long int no_of_combinations,i_min,i_max;
   i_min=i_max=0;
@@ -120,29 +123,71 @@ int main()
     }
   }
 
-  std::vector<basis> v_singlet;
-  select_spin(half_filling, v_singlet, 0.);
-  cout << "Singlet basis are: \n";
-  vector_out(v_singlet);
+  std::vector<basis> v_spin;
+  std::vector<float> eigenvalues;
 
-  MatrixXf Ht(v_singlet.size(),v_singlet.size());
+  int spin_limit = int(0.5*size);
 
-  for(int a=0; a<Ht.rows(); a++)
+  for(int i= -spin_limit; i<=spin_limit; i++)
   {
-    for(int b=0; b<Ht.rows(); b++)
+    select_spin(half_filling, v_spin, i);
+
+    MatrixXf Ht(v_spin.size(),v_spin.size());
+    for(int a=0; a<Ht.rows(); a++)
     {
-      Ht(a,b)=0;
-      for(int sigma=-1; sigma<=1; sigma+=2)
+      for(int b=0; b<Ht.rows(); b++)
       {
-        for(int i=0; i<size; i++)
+        Ht(a,b)=0;
+        for(int sigma=-1; sigma<=1; sigma+=2)
         {
-           int temp=annhilate(v_singlet.at(b).get_x(),periodic(i,1,size),sigma);
-           (v_singlet.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+          for(int i=0; i<size; i++)
+          {
+             int temp=annhilate(v_spin.at(b).get_x(),periodic(i,1,size),sigma);
+             (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+          }
         }
       }
     }
+
+    MatrixXf HU= MatrixXf::Zero(v_spin.size(),v_spin.size());
+    for(int a=0; a<Ht.rows(); a++)
+      {
+        VectorXi basis = inttobin(v_spin.at(a).get_x());
+
+        for(int i=0; i<size; i++)
+        {
+          HU(a,a) += basis(i)*basis(i+size);
+        }
+        HU(a,a) *= U;
+      }
+
+    // cout << "Spin " << i << " Basis are: \n";
+    // vector_out(v_spin);
+    // cout << "Ht matrix is: \n\n" << Ht << endl;
+    // cout << "HU matrix is: \n\n" << HU << endl;
+
+    MatrixXf H=Ht+HU;
+    EigenSolver <MatrixXf> es;
+    es.compute(H);
+
+    VectorXf ith_spin_eivals_vectorxf = es.eigenvalues().real();
+    std::vector<float> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
+    eigenvalues.insert(eigenvalues.end(),ith_spin_eivals.begin(),ith_spin_eivals.end());
+
+    v_spin.clear();
+    ith_spin_eivals.clear();
+
   }
 
-  cout << "Ht matrix is: \n\n" << Ht << endl;
+  float temperature;
+  cout << "Enter the temperature:";
+  cin >> temperature;
+
+  float partition_func = 0;
+
+  for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++)
+    partition_func += exp(-(*it)/temperature);
+  std::cout << "partition_func is: " << '\n';
+  cout << partition_func << endl;
 
 }
