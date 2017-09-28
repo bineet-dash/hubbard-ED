@@ -4,9 +4,12 @@
 #include <cmath>
 #include "edlib.h"
 #include "common.h"
+#include <fstream>
 
 using namespace std;
 using namespace Eigen;
+
+//ofstream fout("eigenvalues.txt");
 
 int size;
 float t=1;
@@ -97,9 +100,15 @@ void select_spin(std::vector<basis> master, std::vector<basis>& v, float spin)
   }
 }
 
+void check_consistency(float t, float U)
+{
+  cout << "-------------------------------------\n";
+  cout << "Theoretical result for eigenvalues: \n";
+  cout << U/2-sqrt(U*U/4+4*t*t) << endl << 0 << " (Triplet) " << endl << U << endl << U/2+sqrt(U*U/4+4*t*t)<< endl;
+}
+
 int main()
 {
-
   cout << "Enter lattice size and U: ";
   cin >> size >> U;
   assert(size%2==0);
@@ -130,52 +139,48 @@ int main()
 
   for(int i= -spin_limit; i<=spin_limit; i++)
   {
-    select_spin(half_filling, v_spin, i);
+      select_spin(half_filling, v_spin, i);
 
-    MatrixXf Ht(v_spin.size(),v_spin.size());
-    for(int a=0; a<Ht.rows(); a++)
-    {
-      for(int b=0; b<Ht.rows(); b++)
+      MatrixXf Ht(v_spin.size(),v_spin.size());
+      for(int a=0; a<Ht.rows(); a++)
       {
-        Ht(a,b)=0;
-        for(int sigma=-1; sigma<=1; sigma+=2)
+        for(int b=0; b<Ht.rows(); b++)
         {
-          for(int i=0; i<size; i++)
+          Ht(a,b)=0;
+          for(int sigma=-1; sigma<=1; sigma+=2)
           {
-             int temp=annhilate(v_spin.at(b).get_x(),periodic(i,1,size),sigma);
-             (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+            for(int i=0; i<size; i++)
+            {
+               int temp=annhilate(v_spin.at(b).get_x(),periodic(i,1,size),sigma);
+               (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+            }
           }
         }
       }
-    }
 
-    MatrixXf HU= MatrixXf::Zero(v_spin.size(),v_spin.size());
-    for(int a=0; a<Ht.rows(); a++)
-      {
-        VectorXi basis = inttobin(v_spin.at(a).get_x());
-
-        for(int i=0; i<size; i++)
+      MatrixXf HU= MatrixXf::Zero(v_spin.size(),v_spin.size());
+      for(int a=0; a<Ht.rows(); a++)
         {
-          HU(a,a) += basis(i)*basis(i+size);
+          VectorXi basis = inttobin(v_spin.at(a).get_x());
+          for(int i=0; i<size; i++) HU(a,a) += basis(i)*basis(i+size);
+          HU(a,a) *= U;
         }
-        HU(a,a) *= U;
-      }
 
-    // cout << "Spin " << i << " Basis are: \n";
-    // vector_out(v_spin);
-    // cout << "Ht matrix is: \n\n" << Ht << endl;
-    // cout << "HU matrix is: \n\n" << HU << endl;
+      // cout << "Spin " << i << " Basis are: \n";
+      // vector_out(v_spin);
+      // cout << "Ht matrix is: \n\n" << Ht << endl;
+      // cout << "HU matrix is: \n\n" << HU << endl;
 
-    MatrixXf H=Ht+HU;
-    EigenSolver <MatrixXf> es;
-    es.compute(H);
+      MatrixXf H=Ht+HU;
+      EigenSolver <MatrixXf> es;
+      es.compute(H);
 
-    VectorXf ith_spin_eivals_vectorxf = es.eigenvalues().real();
-    std::vector<float> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
-    eigenvalues.insert(eigenvalues.end(),ith_spin_eivals.begin(),ith_spin_eivals.end());
+      VectorXf ith_spin_eivals_vectorxf = es.eigenvalues().real();
+      std::vector<float> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
+      eigenvalues.insert(eigenvalues.end(),ith_spin_eivals.begin(),ith_spin_eivals.end());
 
-    v_spin.clear();
-    ith_spin_eivals.clear();
+      v_spin.clear();
+      ith_spin_eivals.clear();
 
   }
 
@@ -185,9 +190,21 @@ int main()
 
   float partition_func = 0;
 
+  std::sort (eigenvalues.begin(), eigenvalues.end());
+  float unruly_free_energy= 0;
+  if(isinf(exp(-eigenvalues.at(0)/temperature)))
+  {
+    unruly_free_energy += eigenvalues.at(0);
+    transform(eigenvalues.begin(), eigenvalues.end(), eigenvalues.begin(), bind1st(plus<float>(),-eigenvalues.at(0)));
+  }
+
   for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++)
+  {
     partition_func += exp(-(*it)/temperature);
-  std::cout << "partition_func is: " << '\n';
-  cout << partition_func << endl;
+    cout << *it << endl;
+  }
+
+  float free_energy = unruly_free_energy - temperature*log(partition_func);
+
 
 }
