@@ -51,3 +51,22 @@ int periodic(int base, int addendum, int limit) //limit= limit starting the arra
   }
   return result;
 }
+
+
+float find_free_energy(float temperature, vector<float> eigenvalues)
+{
+  float partition_func = 0;
+  std::sort (eigenvalues.begin(), eigenvalues.end());
+  float unruly_free_energy= 0;
+  if(isinf(exp(-eigenvalues.at(0)/temperature)))
+  {
+    unruly_free_energy += eigenvalues.at(0);
+    transform(eigenvalues.begin(), eigenvalues.end(), eigenvalues.begin(), bind1st(plus<float>(),-eigenvalues.at(0)));
+  }
+  for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++)
+  {
+    partition_func += exp(-(*it)/temperature);
+  }
+  float free_energy = unruly_free_energy - temperature*log(partition_func);
+  return free_energy;
+}

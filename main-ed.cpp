@@ -9,8 +9,6 @@
 using namespace std;
 using namespace Eigen;
 
-//ofstream fout("eigenvalues.txt");
-
 int size;
 float t=1;
 float U;
@@ -107,8 +105,10 @@ void check_consistency(float t, float U)
   cout << U/2-sqrt(U*U/4+4*t*t) << endl << 0 << " (Triplet) " << endl << U << endl << U/2+sqrt(U*U/4+4*t*t)<< endl;
 }
 
-int main()
+
+int main(int argc, char* argv[])
 {
+  assert(argc>1);
   cout << "Enter lattice size and U: ";
   cin >> size >> U;
   assert(size%2==0);
@@ -166,11 +166,6 @@ int main()
           HU(a,a) *= U;
         }
 
-      // cout << "Spin " << i << " Basis are: \n";
-      // vector_out(v_spin);
-      // cout << "Ht matrix is: \n\n" << Ht << endl;
-      // cout << "HU matrix is: \n\n" << HU << endl;
-
       MatrixXf H=Ht+HU;
       EigenSolver <MatrixXf> es;
       es.compute(H);
@@ -184,27 +179,20 @@ int main()
 
   }
 
-  float temperature;
-  cout << "Enter the temperature:";
-  cin >> temperature;
+  ofstream fout(argv[2]);
+  for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) fout << *it << endl;
 
-  float partition_func = 0;
-
-  std::sort (eigenvalues.begin(), eigenvalues.end());
-  float unruly_free_energy= 0;
-  if(isinf(exp(-eigenvalues.at(0)/temperature)))
-  {
-    unruly_free_energy += eigenvalues.at(0);
-    transform(eigenvalues.begin(), eigenvalues.end(), eigenvalues.begin(), bind1st(plus<float>(),-eigenvalues.at(0)));
-  }
-
-  for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++)
-  {
-    partition_func += exp(-(*it)/temperature);
-    cout << *it << endl;
-  }
-
-  float free_energy = unruly_free_energy - temperature*log(partition_func);
+  // float temperature;
+  // cout << "Enter the temperature:";
+  // cin >> temperature;
+  //
+  // float initial_temp, final_temp, temperature_step;
+  // cout << "Enter initial temperature, final temperature, temperature_step: ";
+  // cin >> initial_temp >> final_temp >> temperature_step;
+  //
+  // ofstream outfilefreeenergy(argv[1]);
+  // for(float temperature = initial_temp; temperature < final_temp; temperature+= temperature_step)
+  //   outfilefreeenergy << find_free_energy(temperature, eigenvalues) << endl;
 
 
 }
