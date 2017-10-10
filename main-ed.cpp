@@ -108,7 +108,7 @@ void check_consistency(float t, float U)
 
 int main(int argc, char* argv[])
 {
-  assert(argc>1);
+  // assert(argc>1);
   cout << "Enter lattice size and U: ";
   cin >> size >> U;
   assert(size%2==0);
@@ -179,9 +179,9 @@ int main(int argc, char* argv[])
 
   }
 
-  ofstream fout(argv[2]);
-  for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) fout << *it << endl;
-
+    ofstream fout(argv[2]);
+   for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) fout << *it << endl;
+  //  check_consistency(1,U);
   // float temperature;
   // cout << "Enter the temperature:";
   // cin >> temperature;
