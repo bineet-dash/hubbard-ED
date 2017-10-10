@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cmath>
 #include <Eigen/Dense>
@@ -34,27 +35,30 @@ float find_free_energy(float temperature, vector<float> eigenvalues)
 float get_mu(float temperature, std::vector<float> v)
 {
   sort (v.begin(), v.end());
-  float mu = 0.5*(v.front()+v.back()) ;
-  float no_of_electrons;
+  float bisection_up_lim = v.back();
+  float bisection_low_lim = v.front();
 
-  auto it = v.begin();
+  float mu;
+  float no_of_electrons; int count=0;
 
-  cout << "initial mu=" << mu << endl;
+
   for(int i=0; i<=1; i++)
   {
-    no_of_electrons=0;
-    cout << "======================"<< endl;
+    int it=0; no_of_electrons=0;  count++;
+    cout << "Loop:" << count << "\n----------------------\n";
+    mu = 0.5*(bisection_low_lim+bisection_up_lim) ;
+
     while(no_of_electrons<= size)
     {
-      float fermi_func = 1/(exp((*it-mu)/temperature)+1);
-      std::cout << fermi_func << '\t';
+      float fermi_func = 1/(exp((v[it]-mu)/temperature)+1);
+      // std::cout << fermi_func << '\t';
       no_of_electrons += fermi_func;
       it++;
     }
-    cout << endl << "=====================" << endl;
-    if(abs(*(it-1)-mu) < epsilon){cout << *(it-1) << endl; return mu; break;}
-    else if(*(it-1)< mu-epsilon) {mu = 0.5*(*(it-1)+v.front()); i=0; cout << *(it-1) << "\t" << mu <<"\t" << no_of_electrons <<  endl; }
-    else if(*(it-1)> mu+epsilon) { mu = 0.5*(*(it-1)+v.back()); i=0; cout << *(it-1) << "\t" << mu << "\t" << no_of_electrons <<  endl; }
+    if(abs(v[it-1]-mu) < epsilon){cout << "exact " << v[it] << ", mu=" << mu << endl;  cout << no_of_electrons << endl; return mu; break;}
+    else if(v[it-1]< mu-epsilon) {bisection_up_lim=mu; i=0; cout << no_of_electrons << endl;}
+    else if(v[it-1]> mu+epsilon) {bisection_low_lim=mu; i=0; cout << no_of_electrons << endl; }
+    cout << "\n-----------------------------\n";
   }
 
 }
