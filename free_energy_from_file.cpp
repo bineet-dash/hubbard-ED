@@ -8,7 +8,7 @@
 int size;
 float t=1;
 float U;
-float epsilon= 1e-4;
+float epsilon= 1e-3;
 using namespace std;
 using namespace Eigen;
 
@@ -48,16 +48,15 @@ float get_mu(float temperature, std::vector<float> v)
     cout << "Loop:" << count << "\n----------------------\n";
     mu = 0.5*(bisection_low_lim+bisection_up_lim) ;
 
-    while(no_of_electrons<= size)
+    for(int it=0; it<v.size(); it++)
     {
       float fermi_func = 1/(exp((v[it]-mu)/temperature)+1);
       // std::cout << fermi_func << '\t';
       no_of_electrons += fermi_func;
-      it++;
     }
-    if(abs(v[it-1]-mu) < epsilon){cout << "exact " << v[it] << ", mu=" << mu << endl;  cout << no_of_electrons << endl; return mu; break;}
-    else if(v[it-1]< mu-epsilon) {bisection_up_lim=mu; i=0; cout << no_of_electrons << endl;}
-    else if(v[it-1]> mu+epsilon) {bisection_low_lim=mu; i=0; cout << no_of_electrons << endl; }
+    if(abs(no_of_electrons-size) < epsilon){cout << "exact " << v[it] << ", mu=" << mu << endl;  cout << no_of_electrons << endl; return mu; break;}
+    else if(no_of_electrons> size+epsilon) {bisection_up_lim=mu; i=0; cout << "lower " << no_of_electrons << endl;}
+    else if(no_of_electrons< size-epsilon) {bisection_low_lim=mu; i=0; cout << "upper " <<  no_of_electrons << endl; }
     cout << "\n-----------------------------\n";
   }
 
