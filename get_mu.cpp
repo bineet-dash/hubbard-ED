@@ -140,25 +140,33 @@ int main(int argc, char* argv[])
       eigenvalues.push_back(eival);
     }
 
-  // std::cout << "Enter temperature: "; float temperature; cin >> temperature;
-  // cout << "The chemical potential is: " << get_mu_s(float(size), eigenvalues, temperature) << endl;
+  std::cout << "Enter temperature: "; float temperature; cin >> temperature;
+  //cout << "The chemical potential is: " << get_mu_s(float(size), eigenvalues, temperature) << endl;
 
+sort(eigenvalues.begin(),eigenvalues.end());
 
-  // float f=0; //float mu; cin >> mu;
-  // for(int i=0; i<eigenvalues.size(); i++)
-  //   f += (1.0/(exp((eigenvalues[i]+1.1)/temperature)+1.0));
-  // cout << endl << endl << f << endl;
-
-
-  float initial_temp, final_temp, temperature_step;
-  cout << "Enter initial temperature, final temperature, temperature_step: ";
-  cin >> initial_temp >> final_temp >> temperature_step;
-
-   ofstream outfile_mu(argv[2]);
-  for(float temperature = initial_temp; temperature < final_temp; temperature+= temperature_step)
+ofstream fout("curve_mu.txt");
+while(1==1)
   {
-    outfile_mu << temperature << "\t" << get_mu_s(float(size), eigenvalues, temperature) << "\t" /*<< get_mu(temperature,eigenvalues)*/ << endl;
-    //  outfilefreeenergy << temperature << " " << find_free_energy(temperature, eigenvalues) << endl;
-    //  cout << find_free_energy(temperature,eigenvalues) << endl;
+    float f=0; float mu; cin >> mu;
+    for(int i=0; i<eigenvalues.size(); i++)
+      fout << eigenvalues[i] << " " << 1.0/(exp((eigenvalues[i]-mu)/temperature)+1.0) << endl;
+        //f+= 1.0/(exp((eigenvalues[i]-mu)/temperature)+1.0);
+        //f = f+ 0.5*tanh(1.0+(mu-eigenvalues[i])/(2.0*temperature));
+      // cout << "here\n";
+      // cout << endl << f << endl;
   }
+
+
+  // float initial_temp, final_temp, temperature_step;
+  // cout << "Enter initial temperature, final temperature, temperature_step: ";
+  // cin >> initial_temp >> final_temp >> temperature_step;
+  //
+  //  ofstream outfile_mu(argv[2]);
+  // for(float temperature = initial_temp; temperature < final_temp; temperature+= temperature_step)
+  // {
+  //   outfile_mu << temperature << "\t" << get_mu_s(float(size), eigenvalues, temperature) << "\t" /*<< get_mu(temperature,eigenvalues)*/ << endl;
+  //   //  outfilefreeenergy << temperature << " " << find_free_energy(temperature, eigenvalues) << endl;
+  //   //  cout << find_free_energy(temperature,eigenvalues) << endl;
+  // }
 }

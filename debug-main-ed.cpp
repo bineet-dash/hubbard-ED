@@ -8,6 +8,11 @@
 #include <cmath>
 #include "edlib.h"
 #include "common.h"
+#include <clocale>
+
+const wchar_t up[] = L"\u2191";
+const wchar_t down[] = L"\u2193";
+
 
 using namespace std;
 using namespace Eigen;
@@ -26,6 +31,24 @@ public:
   void attach_spin(int s){spin =s;}
   void output(void){cout << inttobin(x).transpose() << "\t \t" << spin << endl;}
 };
+
+void vis(int u, int d)
+{
+  setlocale(LC_ALL, "");
+  if(u==1 && d==1)     std::wcout << up << down;
+  else if(u==1&& d==0) std::wcout << up;
+  else if(u==0&& d==1) std::wcout << down;
+  else                 std::wcout <<"O";
+}
+
+void show_arr(int theValue)
+{
+  VectorXi v = inttobin(theValue);
+  for(int i=0; i<size; i++)
+  {
+    vis(v(i),v(i+size)); wcout << " ";
+  }
+}
 
 float filter(float x) {if(abs(x)<1e-4) return 0.0; else return x;}
 void filter(std::vector<float>& v) {for(int i=0; i<v.size(); i++)  v[i]=filter(v[i]); }
@@ -111,7 +134,7 @@ void check_tb_validity(void)
 
 int main(int argc, char* argv[])
 {
-  assert(argc>1);
+  //assert(argc>1);
   cout << "Enter lattice size and U: ";
   cin >> size >> U;
   assert(size%2==0);
@@ -138,9 +161,8 @@ int main(int argc, char* argv[])
   std::vector<float> eigenvalues;
 
   int spin_limit = int(0.5*size);
+  int i =0;
 
-  for(int i= -spin_limit; i<=spin_limit; i++)
-  {
       select_spin(half_filling, v_spin, i);
 
       MatrixXf Ht(v_spin.size(),v_spin.size());
@@ -160,46 +182,56 @@ int main(int argc, char* argv[])
           }
         }
 
-      MatrixXf HU= MatrixXf::Zero(v_spin.size(),v_spin.size());
-      for(int a=0; a<HU.rows(); a++)
-        {
-          VectorXi basis = inttobin(v_spin.at(a).get_x());
-          for(int i=0; i<size; i++) HU(a,a) += basis(i)*basis(i+size);
-          HU(a,a) *= U;
-        }
-
-      MatrixXf H=Ht+HU;
-      EigenSolver <MatrixXf> es;
-      es.compute(H);
+      // EigenSolver <MatrixXf> es;
+      // es.compute(H);
 
       cout << "Spin:" << i << " sector Hamiltonian: \n";
       for(int i=0; i<v_spin.size(); i++) cout << v_spin[i].get_x() << " ";
       cout << endl;
       for(int i=0; i<v_spin.size(); i++) cout << "--";
       cout << endl;
-      cout << H << endl << endl;
+      cout << Ht << endl << endl;
 
+      while(1==1)
+      {
+        const char  *ptr = NULL;
 
+        int row, col;
+        cout << "Enter row and column: ";
+        cin >> row >> col;
 
-      VectorXf ith_spin_eivals_vectorxf = es.eigenvalues().real();
-      std::vector<float> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
-      eigenvalues.insert(eigenvalues.end(),ith_spin_eivals.begin(),ith_spin_eivals.end());
+        cout << "row array for row=" << row << ": ";
+        freopen(ptr, "w", stdout);
+        show_arr(v_spin.at(row).get_x());
 
-      {cout << "The singlet eivals are: \n" << filter(ith_spin_eivals_vectorxf) << endl << endl;}
+        freopen(ptr, "w", stdout);
+        wcout << "\ncol array for col=" << col << ": ";
 
-      v_spin.clear();
-      ith_spin_eivals.clear();
+        freopen(ptr, "w", stdout);
+        show_arr(v_spin.at(col).get_x());
+        wcout << endl;
+        freopen(ptr, "w", stdout);
+      }
 
+      exit(1);
 
-  }
-
-    sort(eigenvalues.begin(),eigenvalues.end());
-    filter(eigenvalues);
+    //   VectorXf ith_spin_eivals_vectorxf = es.eigenvalues().real();
+    //   std::vector<float> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
+    //   eigenvalues.insert(eigenvalues.end(),ith_spin_eivals.begin(),ith_spin_eivals.end());
+    //
+    //   {cout << "The singlet eivals are: \n" << filter(ith_spin_eivals_vectorxf).transpose() << endl << endl;}
+    //
+    //   v_spin.clear();
+    //   ith_spin_eivals.clear();
+    //
+    //
+    // sort(eigenvalues.begin(),eigenvalues.end());
+    // filter(eigenvalues);
 
     // ofstream fout;
     // fout.open(argv[1]);
     // for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) cout << *it << endl;
-    check_consistency(1,U);
-    check_tb_validity();
+    // check_consistency(1,U);
+    //check_tb_validity();
 
 }
