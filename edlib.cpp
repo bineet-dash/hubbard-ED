@@ -2,7 +2,8 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <cassert>
-#include "common.h"
+#include <lapacke.h>
+#include "common_globals.h"
 
 using namespace std;
 using namespace Eigen;
@@ -52,6 +53,30 @@ int periodic(int base, int addendum, int limit) //limit= limit starting the arra
   return result;
 }
 
+bool diagonalize(MatrixXd Ac, VectorXd& lambdac, MatrixXd vc)
+{
+  int N;
+  if(Ac.cols()==Ac.rows())  N = Ac.cols(); else return false;
+
+  lambdac.resize(N);
+  vc.resize(N,N);
+
+  int LDA = N;
+  int INFO = 0;
+  char Uchar = 'U';
+  char Vchar = 'V';
+  char Nchar = 'N';
+
+  int LWORK = 5*(2*LDA*LDA+6*LDA+1);
+  int LIWORK = 5*(3+5*LDA);
+
+  VectorXd WORK(LWORK);
+  VectorXi IWORK(IWORK);
+
+  dsyevd_(&Nchar, &Uchar, &N, Ac.data(), &LDA, lambdac.data(),  WORK.data(), &LWORK, IWORK.data(), &LIWORK, &INFO);
+  vc = Ac;
+  return INFO==0;
+}
 
 double find_free_energy(double temperature, vector<double> eigenvalues)
 {

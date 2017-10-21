@@ -2,11 +2,10 @@
 #include <Eigen/Dense>
 #include <cassert>
 #include <fstream>
-#include <lapacke.h>
 #include <cmath>
 #include <clocale>
 #include "edlib.h"
-#include "common.h"
+#include "common_globals.h"
 
 using namespace std;
 using namespace Eigen;
@@ -55,31 +54,6 @@ void basis::get_arr(char newline)
 double filter(double x) {if(abs(x)<1e-4) return 0.0; else return x;}
 void filter(std::vector<double>& v) {for(int i=0; i<v.size(); i++)  v[i]=filter(v[i]); }
 VectorXd filter(VectorXd v) {for(int i=0; i<v.size(); i++)  v(i)=filter(v(i)); return v;}
-
-bool diagonalize(MatrixXd Ac, VectorXd& lambdac, MatrixXd vc)
-{
-  int N;
-  if(Ac.cols()==Ac.rows())  N = Ac.cols(); else return false;
-
-  lambdac.resize(N);
-  vc.resize(N,N);
-
-  int LDA = N;
-  int INFO = 0;
-  char Uchar = 'U';
-  char Vchar = 'V';
-  char Nchar = 'N';
-
-  int LWORK = 5*(2*LDA*LDA+6*LDA+1);
-  int LIWORK = 5*(3+5*LDA);
-
-  VectorXd WORK(LWORK);
-  VectorXi IWORK(IWORK);
-
-  dsyevd_(&Nchar, &Uchar, &N, Ac.data(), &LDA, lambdac.data(),  WORK.data(), &LWORK, IWORK.data(), &LIWORK, &INFO);
-  vc = Ac;
-  return INFO==0;
-}
 
 
 int annhilate(VectorXi v, int index, int sigma)
@@ -175,7 +149,6 @@ int main(int argc, char* argv[])
   for(int i= -spin_limit; i<=spin_limit; i++)
   {
       select_spin(half_filling, v_spin, i);
-
       cout << "Spin: " << i << " sector\nsize=" << v_spin.size() << endl;
 
       MatrixXd Ht(v_spin.size(),v_spin.size());
@@ -195,22 +168,22 @@ int main(int argc, char* argv[])
           }
         }
 
-      MatrixXd HU= MatrixXd::Zero(v_spin.size(),v_spin.size());
-      for(int a=0; a<HU.rows(); a++)
-        {
-          VectorXi basis = inttobin(v_spin.at(a).get_x());
-          for(int i=0; i<size; i++) HU(a,a) += basis(i)*basis(i+size);
-          HU(a,a) *= U;
-        }
+    MatrixXd HU= MatrixXd::Zero(v_spin.size(),v_spin.size());
+    for(int a=0; a<HU.rows(); a++)
+    {
+      VectorXi basis = inttobin(v_spin.at(a).get_x());
+      for(int i=0; i<size; i++) HU(a,a) += basis(i)*basis(i+size);
+      HU(a,a) *= U;
+    }
 
-      MatrixXd H=Ht+HU; VectorXd ith_spin_eivals_vectorxf; VectorXd ith_eigenvectors;
-      diagonalize(H, ith_spin_eivals_vectorxf, ith_eigenvectors);
+    MatrixXd H=Ht+HU; VectorXd ith_spin_eivals_vectorxf; VectorXd ith_eigenvectors;
+    diagonalize(H, ith_spin_eivals_vectorxf, ith_eigenvectors);
 
-      vector<double> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
-      eigenvalues.insert(eigenvalues.end(),ith_spin_eivals.begin(),ith_spin_eivals.end());
+    vector<double> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
+    eigenvalues.insert(eigenvalues.end(),ith_spin_eivals.begin(),ith_spin_eivals.end());
 
-      v_spin.clear();
-      ith_spin_eivals.clear();
+    v_spin.clear();
+    ith_spin_eivals.clear();
   }
 
     sort(eigenvalues.begin(),eigenvalues.end());
