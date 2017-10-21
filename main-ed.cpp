@@ -11,10 +11,6 @@ using namespace std;
 using namespace std::chrono;
 using namespace Eigen;
 
-int size;
-double t=1;
-double U;
-
 const char  *ptr = NULL;
 const wchar_t up[] = L"\u2191";
 const wchar_t down[] = L"\u2193";

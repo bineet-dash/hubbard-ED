@@ -6,6 +6,10 @@
 #include <chrono>
 #include "common_globals.h"
 
+int size;
+double t=1;
+double U;
+
 using namespace std;
 using namespace Eigen;
 using namespace std::chrono;
