@@ -3,11 +3,12 @@
 #include <cmath>
 #include <cassert>
 #include <lapacke.h>
+#include <chrono>
 #include "common_globals.h"
 
 using namespace std;
 using namespace Eigen;
-
+using namespace std::chrono;
 
 VectorXi inttobin(int theValue)
 {
@@ -94,4 +95,23 @@ double find_free_energy(double temperature, vector<double> eigenvalues)
   }
   double free_energy = unruly_free_energy - temperature*log(partition_func);
   return free_energy;
+}
+
+void show_time(milliseconds begin_ms, milliseconds end_ms,string s)
+{
+   long int t = (end_ms.count()-begin_ms.count())/1000;
+    if (t<=60)
+    { cout <<  s << " took " << t << " seconds." << endl; }
+    else if (t>60 && t<3600)
+    {
+      int minutes=int(t/60); int seconds= t%minutes;
+      cout << s << " took " << minutes << " minute and " << seconds << " seconds." << endl;
+    }
+    else if(t>=3600)
+    {
+      int hrs= int(t/3600); int minutes=int((t-3600*hrs)/60); int seconds= int(t-3600*hrs-60*minutes);
+      cout << s << " took " << hrs << " hour, " << minutes << " minutes and " << seconds << " seconds. ";
+    }
+    else
+    {cout << s << " took " << t << "time. Wrong t received.\n"; }
 }

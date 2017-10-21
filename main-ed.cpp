@@ -1,13 +1,14 @@
 #include <iostream>
 #include <Eigen/Dense>
-#include <cassert>
 #include <fstream>
 #include <cmath>
 #include <clocale>
+#include <chrono>
 #include "edlib.h"
 #include "common_globals.h"
 
 using namespace std;
+using namespace std::chrono;
 using namespace Eigen;
 
 int size;
@@ -17,7 +18,6 @@ double U;
 const char  *ptr = NULL;
 const wchar_t up[] = L"\u2191";
 const wchar_t down[] = L"\u2193";
-
 void vis(int u, int d)
 {
   setlocale(LC_ALL, "");
@@ -148,25 +148,29 @@ int main(int argc, char* argv[])
 
   for(int i= -spin_limit; i<=spin_limit; i++)
   {
-      select_spin(half_filling, v_spin, i);
-      cout << "Spin: " << i << " sector\nsize=" << v_spin.size() << endl;
+    select_spin(half_filling, v_spin, i);
+    cout << "Spin: " << i << " sector\n----------------\nsize=" << v_spin.size() << endl;
 
-      MatrixXd Ht(v_spin.size(),v_spin.size());
-      for(int a=0; a<Ht.rows(); a++)
+    milliseconds begin_ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
+    MatrixXd Ht(v_spin.size(),v_spin.size());
+    for(int a=0; a<Ht.rows(); a++)
+      {
+        for(int b=0; b<Ht.rows(); b++)
         {
-          for(int b=0; b<Ht.rows(); b++)
+          Ht(a,b)=0;
+          for(int sigma=-1; sigma<=1; sigma+=2)
           {
-            Ht(a,b)=0;
-            for(int sigma=-1; sigma<=1; sigma+=2)
+            for(int i=0; i<size; i++)
             {
-              for(int i=0; i<size; i++)
-              {
-                 int temp=annhilate(v_spin.at(b).get_x(),periodic(i,1,size),sigma);
-                 (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
-              }
+               int temp=annhilate(v_spin.at(b).get_x(),periodic(i,1,size),sigma);
+               (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
             }
           }
+          cout << a << " " << b << "\r";
         }
+      }
+    milliseconds end_ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
+    show_time(begin_ms,end_ms,"Ht construction");
 
     MatrixXd HU= MatrixXd::Zero(v_spin.size(),v_spin.size());
     for(int a=0; a<HU.rows(); a++)
@@ -176,14 +180,19 @@ int main(int argc, char* argv[])
       HU(a,a) *= U;
     }
 
+
     MatrixXd H=Ht+HU; VectorXd ith_spin_eivals_vectorxf; VectorXd ith_eigenvectors;
+
+    begin_ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
     diagonalize(H, ith_spin_eivals_vectorxf, ith_eigenvectors);
+    end_ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
+    show_time(begin_ms,end_ms,"Diagonalization");
 
     vector<double> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
     eigenvalues.insert(eigenvalues.end(),ith_spin_eivals.begin(),ith_spin_eivals.end());
 
-    v_spin.clear();
-    ith_spin_eivals.clear();
+    v_spin.clear(); ith_spin_eivals.clear();
+    cout << endl;
   }
 
     sort(eigenvalues.begin(),eigenvalues.end());
