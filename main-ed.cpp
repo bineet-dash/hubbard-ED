@@ -1,5 +1,3 @@
-// #define EIGEN_USE_LAPACKE
-
 #include <iostream>
 #include <Eigen/Dense>
 #include <cassert>
@@ -113,40 +111,22 @@ int annhilate(int x, int index, int sigma)
 int create(VectorXi v, int index, int sigma)
 {
   if(sigma==-1) index+=v.size()/2;
-  if(v(index)==0)
-  {
-    v(index)=1;
-    return bintoint(v);
-  }
-  else
-    return 0;
+  if(v(index)==0) { v(index)=1; return bintoint(v);}
+  else return 0;
 }
 
 int create(int x, int index, int sigma)
 {
   VectorXi v= inttobin(x);
   if(sigma==-1) index+=v.size()/2;
-  if(v(index)==0)
-  {
-    v(index)=1;
-    return bintoint(v);
-  }
-  else
-    return 0;
+  if(v(index)==0){ v(index)=1; return bintoint(v);}
+  else return 0;
 }
 
-void vector_out(std::vector<basis> v)
-{
-  for(auto it=v.begin(); it!=v.end(); it++)
-    (*it).output();
-}
+void vector_out(std::vector<basis> v) {for(auto it=v.begin(); it!=v.end(); it++) (*it).output();}
 
 void select_spin(std::vector<basis> master, std::vector<basis>& v, double spin)
-{
-  for(auto it=master.begin(); it!=master.end(); it++)
-   if((*it).get_spin()==spin)  v.push_back(*it);
-
-}
+{ for(auto it=master.begin(); it!=master.end(); it++) if((*it).get_spin()==spin)  v.push_back(*it);}
 
 void check_consistency(double t, double U)
 {
