@@ -13,10 +13,10 @@ using namespace Eigen;
 
 VectorXi inttobin(int theValue);
 int bintoint(VectorXi v);
-VectorXf seminvert(VectorXi  v);
+VectorXd seminvert(VectorXi  v);
 long int choose(int x);
 int periodic(int base, int addendum, int limit); //limit= limit starting the array from 1
-float find_free_energy(float temperature, vector<float> eigenvalues);
+double find_free_energy(double temperature, vector<double> eigenvalues);
 
 
 #endif

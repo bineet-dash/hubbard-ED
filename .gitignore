@@ -1,6 +1,8 @@
 *
 !*.cpp
+!*.f90
 !*.md
 !*.h
 !.gitignore
 test*
+debug*

@@ -1,3 +1,3 @@
 extern int size;
-extern float t;
-extern float U;
+extern double t;
+extern double U;

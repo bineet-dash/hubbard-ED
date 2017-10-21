@@ -22,10 +22,10 @@ int bintoint(VectorXi v)
     return val;
 }
 
-VectorXf seminvert(VectorXi  v_in)
+VectorXd seminvert(VectorXi  v_in)
 {
   assert(v_in.size()%2==0);
-  VectorXf v = VectorXf::Zero(v_in.size());
+  VectorXd v = VectorXd::Zero(v_in.size());
   for(int i=0; i < v.size()/2; i++)        v_in(i)==1? v(i)= 0.5:v(i)= 0;
   for(int i=v.size()/2; i < v.size(); i++) v_in(i)==1? v(i)=-0.5:v(i)=0;
   return v;
@@ -53,20 +53,20 @@ int periodic(int base, int addendum, int limit) //limit= limit starting the arra
 }
 
 
-float find_free_energy(float temperature, vector<float> eigenvalues)
+double find_free_energy(double temperature, vector<double> eigenvalues)
 {
-  float partition_func = 0;
+  double partition_func = 0;
   std::sort (eigenvalues.begin(), eigenvalues.end());
-  float unruly_free_energy= 0;
+  double unruly_free_energy= 0;
   if(isinf(exp(-eigenvalues.at(0)/temperature)))
   {
     unruly_free_energy += eigenvalues.at(0);
-    transform(eigenvalues.begin(), eigenvalues.end(), eigenvalues.begin(), bind1st(plus<float>(),-eigenvalues.at(0)));
+    transform(eigenvalues.begin(), eigenvalues.end(), eigenvalues.begin(), bind1st(plus<double>(),-eigenvalues.at(0)));
   }
   for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++)
   {
     partition_func += exp(-(*it)/temperature);
   }
-  float free_energy = unruly_free_energy - temperature*log(partition_func);
+  double free_energy = unruly_free_energy - temperature*log(partition_func);
   return free_energy;
 }

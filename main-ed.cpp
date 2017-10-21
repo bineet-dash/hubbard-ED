@@ -1,4 +1,4 @@
-#define EIGEN_USE_LAPACKE
+// #define EIGEN_USE_LAPACKE
 
 #include <iostream>
 #include <Eigen/Dense>
@@ -6,6 +6,7 @@
 #include <fstream>
 #include <lapacke.h>
 #include <cmath>
+#include <clocale>
 #include "edlib.h"
 #include "common.h"
 
@@ -13,23 +14,75 @@ using namespace std;
 using namespace Eigen;
 
 int size;
-float t=1;
-float U;
+double t=1;
+double U;
+
+const char  *ptr = NULL;
+const wchar_t up[] = L"\u2191";
+const wchar_t down[] = L"\u2193";
+
+void vis(int u, int d)
+{
+  setlocale(LC_ALL, "");
+  if(u==1 && d==1)     std::wcout << up << down;
+  else if(u==1&& d==0) std::wcout << up;
+  else if(u==0&& d==1) std::wcout << down;
+  else                 std::wcout <<"O";
+}
 
 class basis {
-  int x; float spin;
+  int x; double spin;
 public:
   basis(){x=spin=0;}
-  basis(int b, float s){x=b; spin=s;}
+  basis(int b, double s){x=b; spin=s;}
   int get_x(){return x;}
+  void get_arr(char);
   float  get_spin(){return spin;}
   void attach_spin(int s){spin =s;}
   void output(void){cout << inttobin(x).transpose() << "\t \t" << spin << endl;}
 };
 
-float filter(float x) {if(abs(x)<1e-4) return 0.0; else return x;}
-void filter(std::vector<float>& v) {for(int i=0; i<v.size(); i++)  v[i]=filter(v[i]); }
-VectorXf filter(VectorXf v) {for(int i=0; i<v.size(); i++)  v(i)=filter(v(i)); return v;}
+void basis::get_arr(char newline)
+{
+  VectorXi v = inttobin(x);
+  freopen(ptr, "w", stdout);
+  for(int i=0; i<size; i++)
+  {
+    vis(v(i),v(i+size)); wcout << " ";
+  }
+  if(newline=='y') wcout << endl;
+  freopen(ptr, "w", stdout);
+}
+
+double filter(double x) {if(abs(x)<1e-4) return 0.0; else return x;}
+void filter(std::vector<double>& v) {for(int i=0; i<v.size(); i++)  v[i]=filter(v[i]); }
+VectorXd filter(VectorXd v) {for(int i=0; i<v.size(); i++)  v(i)=filter(v(i)); return v;}
+
+bool diagonalize(MatrixXd Ac, VectorXd& lambdac, MatrixXd vc)
+{
+  int N;
+  if(Ac.cols()==Ac.rows())  N = Ac.cols(); else return false;
+
+  lambdac.resize(N);
+  vc.resize(N,N);
+
+  int LDA = N;
+  int INFO = 0;
+  char Uchar = 'U';
+  char Vchar = 'V';
+  char Nchar = 'N';
+
+  int LWORK = 5*(2*LDA*LDA+6*LDA+1);
+  int LIWORK = 5*(3+5*LDA);
+
+  VectorXd WORK(LWORK);
+  VectorXi IWORK(IWORK);
+
+  dsyevd_(&Nchar, &Uchar, &N, Ac.data(), &LDA, lambdac.data(),  WORK.data(), &LWORK, IWORK.data(), &LIWORK, &INFO);
+  vc = Ac;
+  return INFO==0;
+}
+
 
 int annhilate(VectorXi v, int index, int sigma)
 {
@@ -88,13 +141,14 @@ void vector_out(std::vector<basis> v)
     (*it).output();
 }
 
-void select_spin(std::vector<basis> master, std::vector<basis>& v, float spin)
+void select_spin(std::vector<basis> master, std::vector<basis>& v, double spin)
 {
   for(auto it=master.begin(); it!=master.end(); it++)
-    if((*it).get_spin()==spin)  v.push_back(*it);
+   if((*it).get_spin()==spin)  v.push_back(*it);
+
 }
 
-void check_consistency(float t, float U)
+void check_consistency(double t, double U)
 {
   if(size!=2) return;
   cout << "-------------------------------------\n";
@@ -105,13 +159,12 @@ void check_consistency(float t, float U)
 void check_tb_validity(void)
 {
   cout << "The eigenvalues obtained by theoretical TB model: \n";
-  for(int i=0; i<size; i++) cout << -2*t*cos(2*M_PI*i/float(size)) << ", ";
+  for(int i=0; i<size; i++) cout << -2*t*cos(2*M_PI*i/double(size)) << ", ";
   cout << endl;
 }
 
 int main(int argc, char* argv[])
 {
-  assert(argc>1);
   cout << "Enter lattice size and U: ";
   cin >> size >> U;
   assert(size%2==0);
@@ -129,13 +182,13 @@ int main(int argc, char* argv[])
   {
     if(inttobin(i).sum()==size)
     {
-      float spin=seminvert(inttobin(i)).sum();
+      double spin=seminvert(inttobin(i)).sum();
       half_filling.push_back(basis(i,spin));
     }
   }
 
   std::vector<basis> v_spin;
-  std::vector<float> eigenvalues;
+  std::vector<double> eigenvalues;
 
   int spin_limit = int(0.5*size);
 
@@ -143,7 +196,9 @@ int main(int argc, char* argv[])
   {
       select_spin(half_filling, v_spin, i);
 
-      MatrixXf Ht(v_spin.size(),v_spin.size());
+      cout << "Spin: " << i << " sector\nsize=" << v_spin.size() << endl;
+
+      MatrixXd Ht(v_spin.size(),v_spin.size());
       for(int a=0; a<Ht.rows(); a++)
         {
           for(int b=0; b<Ht.rows(); b++)
@@ -160,7 +215,7 @@ int main(int argc, char* argv[])
           }
         }
 
-      MatrixXf HU= MatrixXf::Zero(v_spin.size(),v_spin.size());
+      MatrixXd HU= MatrixXd::Zero(v_spin.size(),v_spin.size());
       for(int a=0; a<HU.rows(); a++)
         {
           VectorXi basis = inttobin(v_spin.at(a).get_x());
@@ -168,38 +223,25 @@ int main(int argc, char* argv[])
           HU(a,a) *= U;
         }
 
-      MatrixXf H=Ht+HU;
-      EigenSolver <MatrixXf> es;
-      es.compute(H);
+      MatrixXd H=Ht+HU; VectorXd ith_spin_eivals_vectorxf; VectorXd ith_eigenvectors;
+      diagonalize(H, ith_spin_eivals_vectorxf, ith_eigenvectors);
 
-      cout << "Spin:" << i << " sector Hamiltonian: \n";
-      for(int i=0; i<v_spin.size(); i++) cout << v_spin[i].get_x() << " ";
-      cout << endl;
-      for(int i=0; i<v_spin.size(); i++) cout << "--";
-      cout << endl;
-      cout << H << endl << endl;
-
-
-
-      VectorXf ith_spin_eivals_vectorxf = es.eigenvalues().real();
-      std::vector<float> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
+      vector<double> ith_spin_eivals(ith_spin_eivals_vectorxf.data(), ith_spin_eivals_vectorxf.data()+ith_spin_eivals_vectorxf.size());
       eigenvalues.insert(eigenvalues.end(),ith_spin_eivals.begin(),ith_spin_eivals.end());
-
-      {cout << "The singlet eivals are: \n" << filter(ith_spin_eivals_vectorxf) << endl << endl;}
 
       v_spin.clear();
       ith_spin_eivals.clear();
-
-
   }
 
     sort(eigenvalues.begin(),eigenvalues.end());
     filter(eigenvalues);
 
-    // ofstream fout;
-    // fout.open(argv[1]);
-    // for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) cout << *it << endl;
-    check_consistency(1,U);
-    check_tb_validity();
+    ofstream fout; string filename;
+    filename = "data/eivals_size"+to_string(size)+"_U"+to_string(U)+".txt";
+    fout.open(filename);
+    for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) fout << *it << endl;
+
+    // check_consistency(1,U);
+    // check_tb_validity();
 
 }

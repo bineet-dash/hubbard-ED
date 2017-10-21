@@ -10,6 +10,7 @@
 #include "common.h"
 #include <clocale>
 
+
 const wchar_t up[] = L"\u2191";
 const wchar_t down[] = L"\u2193";
 
@@ -131,6 +132,35 @@ void check_tb_validity(void)
   for(int i=0; i<size; i++) cout << -2*t*cos(2*M_PI*i/float(size)) << ", ";
   cout << endl;
 }
+
+bool cEPpro(MatrixXcd Ac, VectorXcd& lambdac, MatrixXcd& vc)
+{
+  int N;
+  if(Ac.cols()==Ac.rows())  N = Ac.cols(); else return false;
+
+  MatrixXd A = Ac.real();
+  lambdac.resize(N);
+  vc.resize(N,N);
+  VectorXd lambda = lambdac.real();
+
+  int LDA = A.outerStride();
+  int INFO = 0;
+  char Uchar = 'U';
+  char Vchar = 'V';
+
+  int LWORK = 5*(2*LDA*LDA+6*LDA+1);
+  int LIWORK = 5*(3+5*LDA);
+
+  VectorXd WORK(LWORK);
+  VectorXi IWORK(IWORK);
+
+  dsyevd_(&Vchar, &Uchar, &N, A.data(), &LDA, lambda.data(),  WORK.data(), &LWORK, IWORK.data(), &LIWORK, &INFO);
+  vc.real() = A;
+  lambdac.real() = lambda;
+
+  return INFO==0;
+}
+
 
 int main(int argc, char* argv[])
 {
