@@ -30,7 +30,7 @@ public:
   basis(int b, double s){x=b; spin=s;}
   int get_x(){return x;}
   void get_arr(char);
-  float  get_spin(){return spin;}
+  float get_spin(){return spin;}
   void attach_spin(int s){spin =s;}
   void output(void){cout << inttobin(x).transpose() << "\t \t" << spin << endl;}
 };
@@ -47,7 +47,7 @@ void basis::get_arr(char newline)
   freopen(ptr, "w", stdout);
 }
 
-double filter(double x) {if(abs(x)<1e-4) return 0.0; else return x;}
+double filter(double x) {if(abs(x)<1e-7) return 0.0; else return x;}
 void filter(std::vector<double>& v) {for(int i=0; i<v.size(); i++)  v[i]=filter(v[i]); }
 VectorXd filter(VectorXd v) {for(int i=0; i<v.size(); i++)  v(i)=filter(v(i)); return v;}
 
@@ -98,6 +98,7 @@ void vector_out(std::vector<basis> v) {for(auto it=v.begin(); it!=v.end(); it++)
 void select_spin(std::vector<basis> master, std::vector<basis>& v, double spin)
 { for(auto it=master.begin(); it!=master.end(); it++) if((*it).get_spin()==spin)  v.push_back(*it);}
 
+
 void check_consistency(double t, double U)
 {
   if(size!=2) return;
@@ -144,6 +145,7 @@ int main(int argc, char* argv[])
 
   for(int i= -spin_limit; i<=spin_limit; i++)
   {
+    // int i = 1;
     select_spin(half_filling, v_spin, i);
     cout << "Spin: " << i << " sector\n----------------\nsize=" << v_spin.size() << endl;
 
@@ -158,8 +160,11 @@ int main(int argc, char* argv[])
           {
             for(int i=0; i<size; i++)
             {
-               int temp=annhilate(v_spin.at(b).get_x(),periodic(i,1,size),sigma);
-               (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+              int temp=annhilate(v_spin.at(b).get_x(),periodic(i,1,size),sigma);
+              (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+
+              temp=annhilate(v_spin.at(b).get_x(),i,sigma);
+              (v_spin.at(a).get_x()==create(temp,periodic(i,1,size),sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
             }
           }
           cout << a << " " << b << "\r";
@@ -189,16 +194,25 @@ int main(int argc, char* argv[])
 
     v_spin.clear(); ith_spin_eivals.clear();
     cout << endl;
+
+    std::cout << Ht << "\n\n";
   }
 
     sort(eigenvalues.begin(),eigenvalues.end());
     filter(eigenvalues);
 
     ofstream fout; string filename;
-    filename = "data/eivals_size"+to_string(size)+"_U"+to_string(U)+".txt";
+    filename = "data/eivals_size"+to_string(size)+"_U"+to_string(int(U))+".txt";
     fout.open(filename);
     for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) fout << *it << endl;
 
+
+    // for(; ;)
+    // {
+    //   int x;
+    //   cin >> x;
+    //   cout << v_spin.at(x).get_x() << " : "; v_spin.at(x).get_arr('y');
+    // }
     // check_consistency(1,U);
     // check_tb_validity();
 

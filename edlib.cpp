@@ -23,9 +23,9 @@ VectorXi inttobin(int theValue)
 
 int bintoint(VectorXi v)
 {
-    int val=0;
-    for(int i=0; i<v.size(); i++) val+= v(i)*pow(2,i);
-    return val;
+  int val=0;
+  for(int i=0; i<v.size(); i++) val+= v(i)*pow(2,i);
+  return val;
 }
 
 VectorXd seminvert(VectorXi  v_in)
