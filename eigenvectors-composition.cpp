@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
   cin >> size >> U; assert(size%2==0);
 
   cout << "Enter total spin (m_s): "; int spin; cin >> spin;
-  if(abs(spin)>0.5*size) {cout << "Maximum m_s= " << spin_limit << ". Exiting.\n"; exit(1);}
+  if(abs(spin)>0.5*size) {cout << "Maximum m_s= " << 0.5*size << ". Exiting.\n"; exit(1);}
 
   vector<basis> half_filling; select_half_filling(half_filling);
   std::vector<basis> v_spin; select_spin(half_filling, v_spin, spin);
@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
   sort(eigenspectrum.begin(),eigenspectrum.end(),sort_eigenspectrum);
 
   ofstream fout; string filename;
-  filename = "data/debug_eivals_size"+to_string(size)+"_U"+to_string(int(U))/*+"_spin"+to_string(spin)*/+".txt"; fout.open(filename);
+  filename = "data/spin"+to_string(spin)+"_eivals_size"+to_string(size)+"_U"+to_string(int(U))+".txt"; fout.open(filename);
   for(auto it=eigenspectrum.begin(); it!=eigenspectrum.end(); it++) fout << (*it).first << endl;
 
   for(; ;)

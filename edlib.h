@@ -107,15 +107,16 @@ int annhilate(int x, int index, int sigma)
 }
 
 const char  *ptr = NULL;
-const wchar_t up[] = L"\u2191";
-const wchar_t down[] = L"\u2193";
+const wchar_t uparrow[] = L"\u2191";
+const wchar_t downarrow[] = L"\u2193";
+
 void vis(int u, int d)
 {
   setlocale(LC_ALL, "");
-  if(u==1 && d==1)     std::wcout << up << down;
-  else if(u==1&& d==0) std::wcout << up;
-  else if(u==0&& d==1) std::wcout << down;
-  else                 std::wcout <<"O";
+  if(u==1 && d==1)     std::wcout << uparrow << downarrow;
+  else if(u==1&& d==0) std::wcout << uparrow << " ";
+  else if(u==0&& d==1) std::wcout << downarrow << " ";
+  else                 std::wcout << "-" << " ";
 }
 
 void vis_basis(int x, char newline)
