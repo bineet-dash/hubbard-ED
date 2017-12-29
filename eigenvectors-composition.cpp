@@ -1,5 +1,5 @@
 #include <fstream>
-#include "edlib.h"
+#include "ed_library.h"
 #include "common_globals.h"
 
 typedef std::vector<pair<int,double>> eivec;
@@ -55,9 +55,8 @@ int main(int argc, char* argv[])
         sort((*it).second.begin(),(*it).second.end(),sort_eivec);
         for(int j=0; j<(*it).second.size(); j++)
          {
-           // cout << ((*it).second)[j].first << " ";
            if(pow((((*it).second)[j].second),2)>1e-4)
-           {
+           { //cout << ((*it).second)[j].first << " ";
              vis_basis(((*it).second)[j].first,'n');
              cout << filter(pow((((*it).second)[j].second),2)) << endl;
            }

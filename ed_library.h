@@ -1,5 +1,5 @@
-#ifndef _EDLIB_H_INCLUDED_
-#define _EDLIB_H_INCLUDED_
+#ifndef _ED_LIBRARY_H_INCLUDED_
+#define _ED_LIBRARY_H_INCLUDED_
 
 #include <iostream>
 #include <Eigen/Dense>

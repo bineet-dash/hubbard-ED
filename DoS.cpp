@@ -1,5 +1,5 @@
 #include <fstream>
-#include "edlib.h"
+#include "ed_library.h"
 #include "common_globals.h"
 
 void check_consistency()
