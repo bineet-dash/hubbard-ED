@@ -56,8 +56,11 @@ int main(int argc, char* argv[])
         for(int j=0; j<(*it).second.size(); j++)
          {
            // cout << ((*it).second)[j].first << " ";
-           vis_basis(((*it).second)[j].first,'n');
-           cout << filter(pow((((*it).second)[j].second),2)) << endl;
+           if(pow((((*it).second)[j].second),2)>1e-4)
+           {
+             vis_basis(((*it).second)[j].first,'n');
+             cout << filter(pow((((*it).second)[j].second),2)) << endl;
+           }
          }
       }
     }
