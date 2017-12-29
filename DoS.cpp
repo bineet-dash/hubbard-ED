@@ -2,7 +2,7 @@
 #include "edlib.h"
 #include "common_globals.h"
 
-void check_consistency(double t, double U)
+void check_consistency()
 {
   if(size!=2) return;
   cout << "-------------------------------------\n";
@@ -54,6 +54,5 @@ int main(int argc, char* argv[])
   fout.open(filename);
   for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) fout << *it << endl;
 
-  // check_consistency(1,U);
-  // check_tb_validity();
+  check_consistency();
 }
