@@ -23,19 +23,7 @@ void vis(int u, int d)
   else                 std::wcout <<"O";
 }
 
-class basis {
-  int x; double spin;
-public:
-  basis(){x=spin=0;}
-  basis(int b, double s){x=b; spin=s;}
-  int get_x(){return x;}
-  void get_arr(char);
-  float get_spin(){return spin;}
-  void attach_spin(int s){spin =s;}
-  void output(void){cout << inttobin(x).transpose() << "\t \t" << spin << endl;}
-};
-
-void basis::get_arr(char newline)
+void vis_basis(int x, char newline)
 {
   VectorXi v = inttobin(x);
   freopen(ptr, "w", stdout);
@@ -44,8 +32,21 @@ void basis::get_arr(char newline)
     vis(v(i),v(i+size)); wcout << " ";
   }
   if(newline=='y') wcout << endl;
+  else wcout << " ";
   freopen(ptr, "w", stdout);
 }
+
+class basis {
+  int x; double spin;
+public:
+  basis(){x=spin=0;}
+  basis(int b, double s){x=b; spin=s;}
+  int get_x(){return x;}
+  void get_arr(char c) {vis_basis(x,c);}
+  float get_spin(){return spin;}
+  void attach_spin(int s){spin =s;}
+  void output(void){cout << inttobin(x).transpose() << "\t \t" << spin << endl;}
+};
 
 double filter(double x) {if(abs(x)<1e-7) return 0.0; else return x;}
 void filter(std::vector<double>& v) {for(int i=0; i<v.size(); i++)  v[i]=filter(v[i]); }
@@ -158,13 +159,16 @@ int main(int argc, char* argv[])
           Ht(a,b)=0;
           for(int sigma=-1; sigma<=1; sigma+=2)
           {
-            for(int i=0; i<size; i++)
+            for(int i=0; i<size-1; i++)
             {
-              int temp=annhilate(v_spin.at(b).get_x(),periodic(i,1,size),sigma);
+              int temp=annhilate(v_spin.at(b).get_x(),i+1,sigma);
               (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+            }
 
-              temp=annhilate(v_spin.at(b).get_x(),i,sigma);
-              (v_spin.at(a).get_x()==create(temp,periodic(i,1,size),sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+            for(int i=0; i<size-1; i++)
+            {
+              int temp=annhilate(v_spin.at(b).get_x(),i,sigma);
+              (v_spin.at(a).get_x()==create(temp,i+1,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
             }
           }
           cout << a << " " << b << "\r";
@@ -195,7 +199,7 @@ int main(int argc, char* argv[])
     v_spin.clear(); ith_spin_eivals.clear();
     cout << endl;
 
-    std::cout << Ht << "\n\n";
+    // std::cout << Ht << "\n\n";
   }
 
     sort(eigenvalues.begin(),eigenvalues.end());

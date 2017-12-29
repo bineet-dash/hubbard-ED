@@ -58,7 +58,7 @@ int periodic(int base, int addendum, int limit) //limit= limit starting the arra
   return result;
 }
 
-bool diagonalize(MatrixXd Ac, VectorXd& lambdac, MatrixXd vc)
+bool diagonalize(MatrixXd Ac, VectorXd& lambdac, MatrixXd& vc)
 {
   int N;
   if(Ac.cols()==Ac.rows())  N = Ac.cols(); else return false;
@@ -78,7 +78,7 @@ bool diagonalize(MatrixXd Ac, VectorXd& lambdac, MatrixXd vc)
   VectorXd WORK(LWORK);
   VectorXi IWORK(IWORK);
 
-  dsyevd_(&Nchar, &Uchar, &N, Ac.data(), &LDA, lambdac.data(),  WORK.data(), &LWORK, IWORK.data(), &LIWORK, &INFO);
+  dsyevd_(&Vchar, &Uchar, &N, Ac.data(), &LDA, lambdac.data(),  WORK.data(), &LWORK, IWORK.data(), &LIWORK, &INFO);
   vc = Ac;
   return INFO==0;
 }
@@ -93,10 +93,8 @@ double find_free_energy(double temperature, vector<double> eigenvalues)
     unruly_free_energy += eigenvalues.at(0);
     transform(eigenvalues.begin(), eigenvalues.end(), eigenvalues.begin(), bind1st(plus<double>(),-eigenvalues.at(0)));
   }
-  for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++)
-  {
-    partition_func += exp(-(*it)/temperature);
-  }
+  for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) partition_func += exp(-(*it)/temperature);
+
   double free_energy = unruly_free_energy - temperature*log(partition_func);
   return free_energy;
 }

@@ -28,40 +28,38 @@ float find_free_energy(float temperature, vector<float> eigenvalues)
     partition_func += exp(-(*it)/temperature);
   }
   cout << unruly_free_energy << " \t" << partition_func << endl;
-  float free_energy = -unruly_free_energy/temperature + (partition_func);
+  float free_energy = unruly_free_energy + (-temperature)*log(partition_func);
   return free_energy;
 }
 
-// float get_mu(float temperature, std::vector<float> v)
-// {
-//   sort (v.begin(), v.end());
-//   float bisection_up_lim = v.back();
-//   float bisection_low_lim = v.front();
-//
-//   float mu;
-//   float no_of_electrons; int count=0;
-//
-//
-//   for(int i=0; i<=1; i++)
-//   {
-//     int it=0; no_of_electrons=0;  count++;
-//     cout << "Loop:" << count << "\n----------------------\n";
-//     mu = 0.5*(bisection_low_lim+bisection_up_lim) ;
-//
-//     while(no_of_electrons< float(size))
-//     {
-//       float fermi_func = 1/(exp((v[it]-mu)/temperature)+1);
-//       // std::cout << fermi_func << '\t';
-//       no_of_electrons += fermi_func;
-//       it++;
-//     }
-//     if(abs(v[it-1]-mu) < epsilon){cout << "exact " << v[it] << ", mu=" << mu << " position= "<< it << endl;  cout << no_of_electrons << endl; return mu; break;}
-//     else if(v[it-1]< mu-epsilon) {bisection_up_lim=mu; i=0; cout << it-1 << " " <<  no_of_electrons << endl;}
-//     else if(v[it-1]> mu+epsilon) {bisection_low_lim=mu; i=0; cout << it-1 << " " << no_of_electrons << endl; }
-//     cout << "\n-----------------------------\n";
-//   }
-//
-// }
+float get_mu(float temperature, std::vector<float> v)
+{
+  sort (v.begin(), v.end());
+  float bisection_up_lim = v.back();
+  float bisection_low_lim = v.front();
+
+  float mu;
+  float no_of_electrons; int count=0;
+
+  for(; ;)
+  {
+    int it=0; no_of_electrons=0;  count++;
+    cout << "Loop:" << count << "\n----------------------\n";
+    mu = 0.5*(bisection_low_lim+bisection_up_lim) ;
+
+    while(no_of_electrons< float(size))
+    {
+      float fermi_func = 1/(exp((v[it]-mu)/temperature)+1);
+      // std::cout << fermi_func << '\t';
+      no_of_electrons += fermi_func;  it++;
+    }
+    if(abs(no_of_electrons-size) < epsilon){cout << "exact " << v[it] << ", mu=" << mu << " position= "<< it << endl;  cout << no_of_electrons << endl; return mu; break;}
+    else if(no_of_electrons > size+epsilon) { cout << "upper " << mu << " " << it-1 << " " <<  no_of_electrons << endl; bisection_up_lim=mu;}
+    else if(no_of_electrons < size-epsilon) { cout << "lower " << mu << " " << it-1 << " " << no_of_electrons << endl; bisection_low_lim=mu;}
+    cout << "\n-----------------------------\n";
+  }
+
+}
 
 // float maxval(std::vector<float> v) {sort(v.begin(),v.end()); return v.back();}
 // float minval(std::vector<float> v) {sort(v.begin(),v.end()); return v.front();}
@@ -137,11 +135,15 @@ int main(int argc, char* argv[])
       eigenvalues.push_back(eival);
     }
 
+  float TEMP; cin >> TEMP;
+  get_mu(TEMP,eigenvalues);
+  exit(1);
+
   float initial_temp, final_temp, temperature_step;
   cout << "Enter initial temperature, final temperature, temperature_step: ";
   cin >> initial_temp >> final_temp >> temperature_step;
 
-   ofstream outfilefreeenergy(argv[2]);
+  ofstream outfilefreeenergy(argv[2]);
   for(float temperature = initial_temp; temperature < final_temp; temperature+= temperature_step)
   {
      outfilefreeenergy << temperature << " " << find_free_energy(temperature, eigenvalues) << endl;
