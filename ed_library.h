@@ -48,7 +48,7 @@ long int choose(int x)
   return prod;
 }
 
-double filter(double x) {if(abs(x)<1e-4) return 0.0; else return x;}
+double filter(double x) {if(abs(x)<1e-7) return 0.0; else return x;}
 void filter(std::vector<double>& v) {for(int i=0; i<v.size(); i++)  v[i]=filter(v[i]); }
 void filter(VectorXd& v) {for(int i=0; i<v.size(); i++)  v(i)=filter(v(i));}
 
@@ -113,10 +113,10 @@ const wchar_t downarrow[] = L"\u2193";
 void vis(int u, int d)
 {
   setlocale(LC_ALL, "");
-  if(u==1 && d==1)     std::wcout << uparrow << downarrow;
-  else if(u==1&& d==0) std::wcout << uparrow << " ";
-  else if(u==0&& d==1) std::wcout << downarrow << " ";
-  else                 std::wcout << "-" << " ";
+  if(u==1 && d==1)      std::wcout << uparrow << downarrow;
+  else if(u==1 && d==0) std::wcout << uparrow << " ";
+  else if(u==0 && d==1) std::wcout << downarrow << " ";
+  else                  std::wcout << "-" << " ";
 }
 
 void vis_basis(int x, char newline)
@@ -160,29 +160,29 @@ void select_half_filling(std::vector<basis>& half_filling)
   }
 }
 
-void show_time(milliseconds begin_ms, milliseconds end_ms,string s)
+void show_time(milliseconds begin_ms, milliseconds end_ms, string s)
 {
-   long int t = (end_ms.count()-begin_ms.count())/1000;
-    if (t<=60)
-    { cout <<  s << " took " << t << " seconds." << endl; }
-    else if (t>60 && t<3600)
-    {
-      int minutes=int(t/60); int seconds= t%minutes;
-      cout << s << " took " << minutes << " minute and " << seconds << " seconds." << endl;
-    }
-    else if(t>=3600)
-    {
-      int hrs= int(t/3600); int minutes=int((t-3600*hrs)/60); int seconds= int(t-3600*hrs-60*minutes);
-      cout << s << " took " << hrs << " hour, " << minutes << " minutes and " << seconds << " seconds. ";
-    }
-    else
-    {cout << s << " took " << t << "time. Wrong t received.\n"; }
+  long int t = (end_ms.count()-begin_ms.count())/1000;
+  if (t<=60)
+  { cout <<  s  << t << " seconds." << endl; }
+  else if (t>60 && t<3600)
+  {
+    int minutes=int(t/60); int seconds= t%minutes;
+    cout << s  << minutes << " minute and " << seconds << " seconds." << endl;
+  }
+  else if(t>=3600)
+  {
+    int hrs= int(t/3600); int minutes=int((t-3600*hrs)/60); int seconds= int(t-3600*hrs-60*minutes);
+    cout << s  << hrs << " hour, " << minutes << " minutes and " << seconds << " seconds. ";
+  }
+  else
+  {cout << s  << t << "time. Wrong t received.\n"; }
 }
 
 void construct_Ht(MatrixXd& Ht, std::vector<basis> v_spin)
 {
   milliseconds begin_ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
-  Ht.resize(v_spin.size(),v_spin.size());
+  Ht = MatrixXd::Zero(v_spin.size(),v_spin.size());
   for(int a=0; a<Ht.rows(); a++)
     {
       for(int b=0; b<Ht.rows(); b++)
@@ -206,12 +206,12 @@ void construct_Ht(MatrixXd& Ht, std::vector<basis> v_spin)
       }
     }
   milliseconds end_ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
-  show_time(begin_ms,end_ms,"Ht construction");
+  show_time(begin_ms,end_ms,"Ht construction took ");
 }
 
 void construct_HU(MatrixXd& HU, std::vector<basis> v_spin)
 {
-  HU.resize(v_spin.size(),v_spin.size());
+  HU = MatrixXd::Zero(v_spin.size(),v_spin.size());
   for(int a=0; a<HU.rows(); a++)
   {
     VectorXi basis = inttobin(v_spin.at(a).get_x());
@@ -243,6 +243,15 @@ bool diagonalize(MatrixXd Ac, VectorXd& lambdac, MatrixXd& vc)
   dsyevd_(&Vchar, &Uchar, &N, Ac.data(), &LDA, lambdac.data(),  WORK.data(), &LWORK, IWORK.data(), &LIWORK, &INFO);
   vc = Ac;
   return INFO==0;
+}
+
+bool diagonalize(MatrixXd Ac, std::vector<double>& v, MatrixXd& vc)
+{
+  VectorXd lambdac;
+  bool result = diagonalize(Ac,lambdac,vc);
+  v.resize(lambdac.size());
+  VectorXd::Map(&v[0], lambdac.size()) = lambdac;
+  return result;
 }
 
 double find_free_energy(double temperature, vector<double> eigenvalues)
