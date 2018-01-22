@@ -8,6 +8,7 @@
 #include <cassert>
 #include <lapacke.h>
 #include <chrono>
+#include <thread>
 #include "common_globals.h"
 
 int size;
@@ -252,6 +253,41 @@ bool diagonalize(MatrixXd Ac, std::vector<double>& v, MatrixXd& vc)
   v.resize(lambdac.size());
   VectorXd::Map(&v[0], lambdac.size()) = lambdac;
   return result;
+}
+
+double get_mu(double temperature, std::vector<double> v)
+{
+  sort (v.begin(), v.end());
+  double bisection_up_lim = v.back();
+  double bisection_low_lim = v.front();
+
+  double mu, no_of_electrons; int count=0;
+  double epsilon = 0.000001;
+
+  for(; ;)
+  {
+    no_of_electrons=0;  count++;
+    mu = 0.5*(bisection_low_lim+bisection_up_lim) ;
+
+    auto it = v.begin();
+    while(no_of_electrons< double(size) && it!=v.end())
+    {
+      double fermi_func = 1/(exp((*it-mu)/temperature)+1);
+      no_of_electrons += fermi_func;  it++;
+    }
+
+    if(abs(no_of_electrons-size) < epsilon)
+    {
+      return mu; break;
+    }
+    else if(no_of_electrons > size+epsilon)
+      {
+         if(bisection_up_lim == v.front()) break;
+         else {bisection_up_lim=mu;}
+      }
+    else if(no_of_electrons < size-epsilon)
+     {bisection_low_lim=mu;}
+  }
 }
 
 double find_free_energy(double temperature, vector<double> eigenvalues)
