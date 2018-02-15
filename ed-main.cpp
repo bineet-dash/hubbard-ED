@@ -2,6 +2,8 @@
 #include "ed_library.h"
 #include "common_globals.h"
 
+void check_consistency();
+
 int main(int argc, char* argv[])
 {
   cout << "Enter lattice size and U: ";
@@ -22,6 +24,8 @@ int main(int argc, char* argv[])
     MatrixXd HU; construct_HU(HU,v_spin);
     MatrixXd H=Ht+HU;
 
+    cout << Ht << endl << endl;
+
     std::vector<double> ith_spin_eivals; MatrixXd ith_eigenvectors;
     diagonalize(H, ith_spin_eivals, ith_eigenvectors);
 
@@ -39,10 +43,13 @@ int main(int argc, char* argv[])
   fout.close();
 
   eigenvalues.clear();
+
+  check_consistency();
+
   return 0;
 }
 
-void check_consistency(double t, double U)
+void check_consistency(void)
 {
   if(size!=2) return;
   cout << "-------------------------------------\n";

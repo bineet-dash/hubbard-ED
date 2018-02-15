@@ -26,14 +26,14 @@ VectorXi inttobin(int theValue)
   return v;
 }
 
-int bintoint(VectorXi v)
+int bintoint(VectorXi v, int ph)
 {
   int val=0;
   for(int i=0; i<v.size(); i++) val+= v(i)*pow(2,i);
-  return val;
+  return ph*val;
 }
 
-VectorXd seminvert(VectorXi  v_in)
+VectorXd seminvert(VectorXi v_in)
 {
   assert(v_in.size()%2==0);
   VectorXd v = VectorXd::Zero(v_in.size());
@@ -69,26 +69,31 @@ int periodic(int base, int addendum, int limit) //limit= limit starting the arra
 
 int create(VectorXi v, int index, int sigma)
 {
-  if(sigma==-1) index+=v.size()/2;
-  if(v(index)==0) { v(index)=1; return bintoint(v);}
+  int ph=0; int vec_size = v.size()/2;
+  for(int i=0; i<index; i++) ph += v(i)+v(i+vec_size);
+
+  if(sigma==-1) index+=vec_size;
+  if(v(index)==0) { v(index)=1; return bintoint(v,ph);}
   else return 0;
 }
 
 int create(int x, int index, int sigma)
 {
-  VectorXi v= inttobin(x);
-  if(sigma==-1) index+=v.size()/2;
-  if(v(index)==0){ v(index)=1; return bintoint(v);}
-  else return 0;
+  int initial_ph = (x<0)?-1:1;
+  VectorXi v= inttobin(abs(x));
+  return initial_ph*create(v,index,sigma);
 }
 
 int annhilate(VectorXi v, int index, int sigma)
 {
+  int ph=0; int vec_size = v.size()/2;
+  for(int i=0; i<index; i++) ph += v(i)+v(i+vec_size);
+
   if(sigma==-1) index+=v.size()/2;
   if(v(index)==1)
   {
     v(index)=0;
-    return bintoint(v);
+    return bintoint(v,ph);
   }
   else
     return 0;
@@ -96,15 +101,9 @@ int annhilate(VectorXi v, int index, int sigma)
 
 int annhilate(int x, int index, int sigma)
 {
-  VectorXi v=inttobin(x);
-  if(sigma==-1) index+=v.size()/2;
-  if(v(index)==1)
-  {
-    v(index)=0;
-    return bintoint(v);
-  }
-  else
-    return 0;
+  int initial_ph = (x<0)?-1:1;
+  VectorXi v= inttobin(abs(x));
+  return initial_ph*annhilate(v,index,sigma);
 }
 
 const char  *ptr = NULL;
@@ -134,11 +133,12 @@ void vis_basis(int x, char newline)
 }
 
 class basis {
-  int x; double spin;
+  int x; double spin; int phase;
 public:
   basis(){x=spin=0;}
   basis(int b, double s){x=b; spin=s;}
   int get_x(){return x;}
+  int get_phase(){return phase;}
   void get_arr(char c) {vis_basis(x,c);}
   float get_spin(){return spin;}
   void attach_spin(int s){spin = s;}
@@ -195,12 +195,14 @@ void construct_Ht(MatrixXd& Ht, std::vector<basis> v_spin)
           {
             int temp=annhilate(v_spin.at(b).get_x(),i+1,sigma);
             (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+            (v_spin.at(a).get_x()==-create(temp,i,sigma))? Ht(a,b)+= t: Ht(a,b)+=0;
           }
 
           for(int i=0; i<size-1; i++) //c\dagger_i+1 c_i
           {
             int temp=annhilate(v_spin.at(b).get_x(),i,sigma);
             (v_spin.at(a).get_x()==create(temp,i+1,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+            (v_spin.at(a).get_x()==-create(temp,i+1,sigma))? Ht(a,b)+= t: Ht(a,b)+=0;
           }
         }
         cout << a << " " << b << "\r";
