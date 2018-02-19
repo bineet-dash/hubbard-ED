@@ -23,6 +23,8 @@ int main(int argc, char* argv[])
   MatrixXd HU; construct_HU(HU,v_spin);
   MatrixXd H=Ht+HU;
 
+  cout << H << endl << endl;
+
   VectorXd ith_spin_eivals; MatrixXd ith_eigenvectors;
   diagonalize(H, ith_spin_eivals, ith_eigenvectors);
   filter(ith_spin_eivals);
@@ -58,7 +60,7 @@ int main(int argc, char* argv[])
            if(pow((((*it).second)[j].second),2)>1e-4)
            { //cout << ((*it).second)[j].first << " ";
              vis_basis(((*it).second)[j].first,'n');
-             cout << filter(pow((((*it).second)[j].second),2)) << endl;
+             cout << filter(pow((((*it).second)[j].second),1)) << endl;
            }
          }
       }

@@ -2,6 +2,9 @@
 #include "ed_library.h"
 #include "common_globals.h"
 
+void check_consistency(void);
+void check_tb_validity(void);
+
 int main(int argc, char* argv[])
 {
   cout << "Enter lattice size and U: ";
@@ -39,10 +42,12 @@ int main(int argc, char* argv[])
   fout.close();
 
   eigenvalues.clear();
+
+  check_consistency();
   return 0;
 }
 
-void check_consistency(double t, double U)
+void check_consistency(void)
 {
   if(size!=2) return;
   cout << "-------------------------------------\n";
