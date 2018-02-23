@@ -136,6 +136,7 @@ class basis {
   int x; double spin; int phase;
 public:
   basis(){x=spin=0;}
+  basis(int b){x=b; spin=seminvert(inttobin(b)).sum();}
   basis(int b, double s){x=b; spin=s;}
   int get_x(){return x;}
   int get_phase(){return phase;}
@@ -157,7 +158,7 @@ void select_half_filling(std::vector<basis>& half_filling)
   for(int i=size; i<2*size; i++) i_max += pow(2,i);
   for(int i=i_min; i<=i_max; i++)
   {
-    if(inttobin(i).sum()==size) half_filling.push_back(basis(i,seminvert(inttobin(i)).sum()));
+    if(inttobin(i).sum()==size) half_filling.push_back(basis(i));
   }
 }
 
