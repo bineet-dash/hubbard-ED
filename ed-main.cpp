@@ -2,7 +2,9 @@
 #include "ed_library.h"
 #include "common_globals.h"
 
-void check_consistency();
+void check_consistency(void);
+void check_tb_validity(void);
+
 
 int main(int argc, char* argv[])
 {
