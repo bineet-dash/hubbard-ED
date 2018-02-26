@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     MatrixXd HU; construct_HU(HU,v_spin);
     MatrixXd H=Ht+HU;
 
-    cout << Ht << endl << endl;
+    // cout << Ht << endl << endl;
 
     std::vector<double> ith_spin_eivals; MatrixXd ith_eigenvectors;
     diagonalize(H, ith_spin_eivals, ith_eigenvectors);

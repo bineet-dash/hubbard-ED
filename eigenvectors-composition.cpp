@@ -19,13 +19,21 @@ int main(int argc, char* argv[])
   std::vector<basis> v_spin; select_spin(half_filling, v_spin, spin);
   cout << "Spin: " << spin << " sector\n----------------\nsize=" << v_spin.size() << endl;
 
+  if(size==2) iter_swap(v_spin.begin()+0,v_spin.begin()+2);
+
   MatrixXd Ht; construct_Ht(Ht,v_spin);
   MatrixXd HU; construct_HU(HU,v_spin);
   MatrixXd H=Ht+HU;
 
+  if(size==2)
+  {
+    vector_out(v_spin); cout << endl;
+    cout << H << endl << endl;
+  }
+
   VectorXd ith_spin_eivals; MatrixXd ith_eigenvectors;
   diagonalize(H, ith_spin_eivals, ith_eigenvectors);
-  filter(ith_spin_eivals);
+  filter(ith_spin_eivals,1e-5);
 
   eivec ith_eigenvectors_listed;
   vector < pair<double,eivec> > eigenspectrum;
@@ -58,7 +66,7 @@ int main(int argc, char* argv[])
            if(pow((((*it).second)[j].second),2)>1e-4)
            { //cout << ((*it).second)[j].first << " ";
              vis_basis(((*it).second)[j].first,'n');
-             cout << filter(pow((((*it).second)[j].second),2)) << endl;
+             cout << filter(pow((((*it).second)[j].second),2),1e-3) << endl;
            }
          }
       }

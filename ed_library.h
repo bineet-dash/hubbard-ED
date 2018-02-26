@@ -49,9 +49,9 @@ long int choose(int x)
   return prod;
 }
 
-double filter(double x) {if(abs(x)<1e-7) return 0.0; else return x;}
-void filter(std::vector<double>& v) {for(int i=0; i<v.size(); i++)  v[i]=filter(v[i]); }
-void filter(VectorXd& v) {for(int i=0; i<v.size(); i++)  v(i)=filter(v(i));}
+double filter(double x, double x0) {if(abs(x)<x0) return 0.0; else return x;}
+void filter(std::vector<double>& v, double x0) {for(int i=0; i<v.size(); i++)  v[i]=filter(v[i],x0); }
+void filter(VectorXd& v, double x0) {for(int i=0; i<v.size(); i++)  v(i)=filter(v(i),x0);}
 
 int periodic(int base, int addendum, int limit) //limit= limit starting the array from 1
 {
@@ -70,10 +70,17 @@ int periodic(int base, int addendum, int limit) //limit= limit starting the arra
 int create(VectorXi v, int index, int sigma)
 {
   int ph=0; int vec_size = v.size()/2;
-  for(int i=0; i<index; i++) ph += v(i)+v(i+vec_size);
+
+  if(sigma==-1)
+   { for(int i=vec_size-1; i>index; i--) ph += v(i)+v(i+vec_size);}
+  else if(sigma==1)
+   {
+     for(int i=vec_size-1; i>index; i--) ph += v(i);
+     for(int i=v.size()-1; i>=index+vec_size; i--) ph += v(i);
+   }
 
   if(sigma==-1) index+=vec_size;
-  if(v(index)==0) { v(index)=1; return bintoint(v,ph);}
+  if(v(index)==0) { v(index)=1; return bintoint(v,pow(-1,ph));}
   else return 0;
 }
 
@@ -87,16 +94,16 @@ int create(int x, int index, int sigma)
 int annhilate(VectorXi v, int index, int sigma)
 {
   int ph=0; int vec_size = v.size()/2;
-  for(int i=0; i<index; i++) ph += v(i)+v(i+vec_size);
-
+  if(sigma==-1)
+   { for(int i=vec_size-1; i>index; i--) ph += v(i)+v(i+vec_size);}
+  else if(sigma==1)
+   {
+     for(int i=vec_size-1; i>index; i--) ph += v(i);
+     for(int i=v.size()-1; i>=index+vec_size; i--) ph += v(i);
+   }
   if(sigma==-1) index+=v.size()/2;
-  if(v(index)==1)
-  {
-    v(index)=0;
-    return bintoint(v,ph);
-  }
-  else
-    return 0;
+  if(v(index)==1) { v(index)=0; return bintoint(v,pow(-1,ph));}
+  else return 0;
 }
 
 int annhilate(int x, int index, int sigma)
@@ -109,6 +116,7 @@ int annhilate(int x, int index, int sigma)
 const char  *ptr = NULL;
 const wchar_t uparrow[] = L"\u2191";
 const wchar_t downarrow[] = L"\u2193";
+const wchar_t rangle[] = L"\u3009";
 
 void vis(int u, int d)
 {
@@ -121,12 +129,14 @@ void vis(int u, int d)
 
 void vis_basis(int x, char newline)
 {
-  VectorXi v = inttobin(x);
+  VectorXi v = inttobin(abs(x));
+  if(x<0) cout << "-|"; else cout << " |";
   freopen(ptr, "w", stdout);
   for(int i=0; i<size; i++)
   {
-    vis(v(i),v(i+size)); wcout << " ";
+    vis(v(i),v(i+size)); if(i!=size-1) wcout << " ";
   }
+  wcout << rangle;
   if(newline=='y') wcout << endl;
   else wcout << " ";
   freopen(ptr, "w", stdout);
@@ -136,17 +146,17 @@ class basis {
   int x; double spin; int phase;
 public:
   basis(){x=spin=0;}
-  basis(int b){x=b; spin=seminvert(inttobin(b)).sum();}
-  basis(int b, double s){x=b; spin=s;}
+  basis(int b){x=b; spin=seminvert(inttobin(b)).sum(); phase=1;}
+  basis ann(int index, int sigma) {int annhilated = annhilate(x,index,sigma); return basis(annhilated);}
+  void attach_spin(int s){spin = s;}
   int get_x(){return x;}
   int get_phase(){return phase;}
-  void get_arr(char c) {vis_basis(x,c);}
+  void get_arr(char c) {vis_basis(x*phase,c);}
   float get_spin(){return spin;}
-  void attach_spin(int s){spin = s;}
-  void output(void){cout << inttobin(x).transpose() << "\t \t" << spin << endl;}
+  void output(void){get_arr('n'); cout << " " << spin << endl;}
 };
 
-void vector_out(std::vector<basis> v) {for(auto it=v.begin(); it!=v.end(); it++) (*it).output();}
+void vector_out(std::vector<basis> v) {for(auto it=v.begin(); it!=v.end(); it++) (*it).get_arr('n');}
 
 void select_spin(std::vector<basis> master, std::vector<basis>& v, double spin)
 { for(auto it=master.begin(); it!=master.end(); it++) if((*it).get_spin()==spin)  v.push_back(*it);}
