@@ -65,6 +65,8 @@ int main(int argc, char* argv[])
 
     n_av = n_av/part_func;
     n2_av = n2_av/part_func;
+    // cout << n_av << " " << n2_av << endl; 
+    // cout << endl << n2_av - pow(n_av,2) << " " << n2_av/pow(n_av,2)-1 << endl;
     dataout << U << " " << n2_av - pow(n_av,2) << " " << n2_av/pow(n_av,2)-1 << endl;
     eigenspectrum.clear();
   }
