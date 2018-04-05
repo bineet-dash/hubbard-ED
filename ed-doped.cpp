@@ -1,9 +1,9 @@
 #include <fstream>
 #include "ed_library.h"
 #include "common_globals.h"
-#include <matplotlibcpp.h>
+// #include <matplotlibcpp.h>
 
-namespace plt=matplotlibcpp;
+// namespace plt=matplotlibcpp;
 
 void check_consistency();
 
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
   }
 
   sort(eigenvalues.begin(),eigenvalues.end());
-  filter(eigenvalues);
+  filter(eigenvalues,1e-5);
 
   ofstream fout; string filename;
   filename = "data/eivals_size"+to_string(size)+"_filling"+to_string(fill)+"_U"+to_string(int(U))+".txt";
@@ -69,8 +69,8 @@ int main(int argc, char* argv[])
   for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) fout << *it << endl;
   fout.close();
 
-  plt::hist(eigenvalues,20);
-  plt::show();
+  // plt::hist(eigenvalues,20);
+  // plt::show();
 
   eigenvalues.clear();
 
