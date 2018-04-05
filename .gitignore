@@ -4,6 +4,7 @@
 !*.f90
 !*.md
 !*.h
+!*.sh
 !.gitignore
 test*
 debug*
