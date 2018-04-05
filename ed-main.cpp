@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
   }
 
   sort(eigenvalues.begin(),eigenvalues.end());
-  filter(eigenvalues);
+  filter(eigenvalues,1e-4);
 
   ofstream fout; string filename;
   filename = "data/eivals_size"+to_string(size)+"_U"+to_string(int(U))+".txt";
