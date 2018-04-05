@@ -142,6 +142,17 @@ void vis_basis(int x, char newline)
   freopen(ptr, "w", stdout);
 }
 
+int n_i_left(int x)
+{
+ VectorXi v = inttobin(x);
+ int sum = 0;
+ for(int i=0; i<v.size()/4; i++) 
+  {
+    sum += v(i)+v(i+v.size()/2);
+  }
+ return sum;
+}
+
 class basis {
   int x; double spin; int phase;
 public:
@@ -191,36 +202,36 @@ void show_time(milliseconds begin_ms, milliseconds end_ms, string s)
   {cout << s  << t << "time. Wrong t received.\n"; }
 }
 
-void construct_Ht(MatrixXd& Ht, std::vector<basis> v_spin)
+void construct_Ht(MatrixXd& Ht, std::vector<basis> v_spin, char verbose_pref = 'y')
 {
   milliseconds begin_ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
   Ht = MatrixXd::Zero(v_spin.size(),v_spin.size());
   for(int a=0; a<Ht.rows(); a++)
+  {
+    for(int b=0; b<Ht.rows(); b++)
     {
-      for(int b=0; b<Ht.rows(); b++)
+      Ht(a,b)=0;
+      for(int sigma=-1; sigma<=1; sigma+=2)//sum over sigma
       {
-        Ht(a,b)=0;
-        for(int sigma=-1; sigma<=1; sigma+=2)//sum over sigma
+        for(int i=0; i<size-1; i++)   //c\dagger_i c_i+1
         {
-          for(int i=0; i<size-1; i++)   //c\dagger_i c_i+1
-          {
-            int temp=annhilate(v_spin.at(b).get_x(),i+1,sigma);
-            (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
-            (v_spin.at(a).get_x()==-create(temp,i,sigma))? Ht(a,b)+= t: Ht(a,b)+=0;
-          }
-
-          for(int i=0; i<size-1; i++) //c\dagger_i+1 c_i
-          {
-            int temp=annhilate(v_spin.at(b).get_x(),i,sigma);
-            (v_spin.at(a).get_x()==create(temp,i+1,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
-            (v_spin.at(a).get_x()==-create(temp,i+1,sigma))? Ht(a,b)+= t: Ht(a,b)+=0;
-          }
+          int temp=annhilate(v_spin.at(b).get_x(),i+1,sigma);
+          (v_spin.at(a).get_x()==create(temp,i,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+          (v_spin.at(a).get_x()==-create(temp,i,sigma))? Ht(a,b)+= t: Ht(a,b)+=0;
         }
-        cout << a << " " << b << "\r";
+
+        for(int i=0; i<size-1; i++) //c\dagger_i+1 c_i
+        {
+          int temp=annhilate(v_spin.at(b).get_x(),i,sigma);
+          (v_spin.at(a).get_x()==create(temp,i+1,sigma))? Ht(a,b)+= -t: Ht(a,b)+=0;
+          (v_spin.at(a).get_x()==-create(temp,i+1,sigma))? Ht(a,b)+= t: Ht(a,b)+=0;
+        }
       }
+      if(verbose_pref=='y') cout << a << " " << b << "\r";
     }
+  }
   milliseconds end_ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
-  show_time(begin_ms,end_ms,"Ht construction took ");
+  if(verbose_pref=='y') show_time(begin_ms,end_ms,"Ht construction took ");
 }
 
 void construct_HU(MatrixXd& HU, std::vector<basis> v_spin)
