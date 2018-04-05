@@ -1,4 +1,5 @@
 #include <fstream>
+#include <cstdlib>
 #include "ed_library.h"
 #include "common_globals.h"
 
@@ -11,25 +12,22 @@ int main(int argc, char* argv[])
 {
   cout << "Enter lattice size and U: ";
   cin >> size >> U; assert(size%2==0);
+  // if(argc!=3) exit(1);
+  // size = std::strtol(argv[1],nullptr,0);
+  // U = std::strtol(argv[2],nullptr,0);
 
-  cout << "Enter total spin (m_s): "; int spin; cin >> spin;
+  // cout << "Enter total spin (m_s): "; int spin; cin >> spin;
+  int spin = 0;
+  
   if(abs(spin)>0.5*size) {cout << "Maximum m_s= " << 0.5*size << ". Exiting.\n"; exit(1);}
 
   vector<basis> half_filling; select_half_filling(half_filling);
   std::vector<basis> v_spin; select_spin(half_filling, v_spin, spin);
   cout << "Spin: " << spin << " sector\n----------------\nsize=" << v_spin.size() << endl;
 
-  if(size==2) iter_swap(v_spin.begin()+0,v_spin.begin()+2);
-
-  MatrixXd Ht; construct_Ht(Ht,v_spin);
+  MatrixXd Ht; construct_Ht(Ht,v_spin,'n');
   MatrixXd HU; construct_HU(HU,v_spin);
   MatrixXd H=Ht+HU;
-
-  if(size==2)
-  {
-    vector_out(v_spin); cout << endl;
-    cout << H << endl << endl;
-  }
 
   VectorXd ith_spin_eivals; MatrixXd ith_eigenvectors;
   diagonalize(H, ith_spin_eivals, ith_eigenvectors);
@@ -50,6 +48,7 @@ int main(int argc, char* argv[])
   ofstream fout; string filename;
   filename = "data/spin"+to_string(spin)+"_eivals_size"+to_string(size)+"_U"+to_string(int(U))+".txt"; fout.open(filename);
   for(auto it=eigenspectrum.begin(); it!=eigenspectrum.end(); it++) fout << (*it).first << endl;
+  fout.close();
 
   for(; ;)
   {
