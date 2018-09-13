@@ -9,58 +9,9 @@ int size;
 double t=1;
 double U;
 
-
-double get_mu(double temperature, std::vector<double> v)
-{
-  sort (v.begin(), v.end());
-  double bisection_up_lim = v.back();
-  double bisection_low_lim = v.front();
-
-  double mu, no_of_electrons; int count=0;
-  double epsilon = 0.000001;
-
-  for(; ;)
-  {
-    no_of_electrons=0;
-    mu = 0.5*(bisection_low_lim+bisection_up_lim);
-
-    for(auto it = v.begin(); it!= v.end(); it++)
-    {
-      double fermi_func = 1/(exp((*it-mu)/temperature)+1);
-      no_of_electrons += fermi_func;
-    }
-    if(abs(no_of_electrons-size) < epsilon)
-    {
-      return mu; break;
-    }
-    else if(no_of_electrons > size+epsilon)
-    {
-       if(abs(bisection_up_lim-v.front())<0.001){return mu; break;}
-       else {bisection_up_lim=mu;}
-    }
-    else if(no_of_electrons < size-epsilon)
-    {bisection_low_lim=mu;}
-  }
-}
-
-double occupancy_check(double temperature, std::vector<double> v)
-{
-    sort (v.begin(), v.end());
-    double mu = get_mu(temperature, v);
-    for(auto it = v.begin(); it!= v.end(); it++)
-    {
-      double fermi_func = 1/(exp((*it-mu)/temperature)+1);
-      cout << *it << " " << fermi_func << endl;
-    }
-}
-
 double find_free_energy(double temperature, vector<double> eigenvalues)
 {
   std::sort (eigenvalues.begin(), eigenvalues.end());
-
-  // double mu = get_mu(temperature, eigenvalues);
-  // cout << "temperature = " << temperature <<  " mu = " << mu << endl;
-  // transform(eigenvalues.begin(), eigenvalues.end(), eigenvalues.begin(), bind1st(plus<double>(), -mu));
 
   if(isinf(exp(-eigenvalues.at(0)/temperature)))
   {
@@ -80,9 +31,8 @@ int main(int argc, char* argv[])
 {
   if(argc!=2) exit(1);
 
-  // cout << "Enter size and U (as per input file): ";
-  // cin >> size >> U;
-  size=6; U=10;
+  cout << "Enter size and U (as per input file): ";
+  cin >> size >> U;
 
   std::vector<double> eigenvalues;
   ifstream fin(argv[1]);
@@ -105,8 +55,8 @@ int main(int argc, char* argv[])
   int final_exp = 2;
 
   ofstream outfile_freeenergy; string filename,latticedata;
-  latticedata = "_U="+to_string(int(U))+"_size="+ to_string(size);
-  filename="data/ED_free_energy_vs_temp"+latticedata+"_T="+to_string(int(10*pow(10,final_exp)))+".txt"; outfile_freeenergy.open(filename);
+  latticedata = "_U="+to_string(int(U))+"_size_"+ to_string(size);
+  filename="data/ED_free_energy_vs_temp"+latticedata+"_T_"+to_string(int(10*pow(10,final_exp)))+".txt"; outfile_freeenergy.open(filename);
 
   for(int j=final_exp; j>=initial_exp; j--)
   {
@@ -223,3 +173,47 @@ int main(int argc, char* argv[])
 //
 //   return m_d;
 // }
+
+/* double get_mu(double temperature, std::vector<double> v)
+{
+  sort (v.begin(), v.end());
+  double bisection_up_lim = v.back();
+  double bisection_low_lim = v.front();
+
+  double mu, no_of_electrons; int count=0;
+  double epsilon = 0.000001;
+
+  for(; ;)
+  {
+    no_of_electrons=0;
+    mu = 0.5*(bisection_low_lim+bisection_up_lim);
+
+    for(auto it = v.begin(); it!= v.end(); it++)
+    {
+      double fermi_func = 1/(exp((*it-mu)/temperature)+1);
+      no_of_electrons += fermi_func;
+    }
+    if(abs(no_of_electrons-size) < epsilon)
+    {
+      return mu; break;
+    }
+    else if(no_of_electrons > size+epsilon)
+    {
+       if(abs(bisection_up_lim-v.front())<0.001){return mu; break;}
+       else {bisection_up_lim=mu;}
+    }
+    else if(no_of_electrons < size-epsilon)
+    {bisection_low_lim=mu;}
+  }
+}
+
+double occupancy_check(double temperature, std::vector<double> v)
+{
+    sort (v.begin(), v.end());
+    double mu = get_mu(temperature, v);
+    for(auto it = v.begin(); it!= v.end(); it++)
+    {
+      double fermi_func = 1/(exp((*it-mu)/temperature)+1);
+      cout << *it << " " << fermi_func << endl;
+    }
+} */

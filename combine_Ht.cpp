@@ -100,8 +100,8 @@ int main(int argc, char* argv[])
         //  double a; fin >> a; cout << a; 
        }
     }
-    fin.close();
-  }   
+    fin.close()
+  };
 
   // VectorXd lambda; MatrixXd vc;
   // diagonalize(Ht, lambda, vc);

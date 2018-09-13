@@ -29,11 +29,13 @@ int main(int argc, char* argv[])
   }
 
   ofstream dataout("deln_vs_U_size_"+to_string(size)+".txt");
- 
-    // U=0.0;
-    // MatrixXd HU; construct_HU(HU,v_spin);
-    // MatrixXd H=Ht+HU;
-    MatrixXd H = Ht;
+
+  for(double i=0; i<20; i+=1)
+  {
+    ::U=i;
+    MatrixXd HU; construct_HU(HU,v_spin);
+    MatrixXd H=Ht+HU;
+    // MatrixXd H = Ht;
 
     VectorXd ith_spin_eivals; MatrixXd ith_eigenvectors;
 
@@ -77,9 +79,12 @@ int main(int argc, char* argv[])
 
     n_av = n_av/part_func;
     n2_av = n2_av/part_func;
+    cout << "U= " << U << "\n===============\n";
+    cout << n_av << " " << n2_av << endl; 
+    cout << endl << n2_av - pow(n_av,2) << " " << n2_av/pow(n_av,2)-1 << endl << endl;
     dataout << U << " " << n2_av - pow(n_av,2) << " " << n2_av/pow(n_av,2)-1 << endl;
     eigenspectrum.clear();
-  
+  }
 
   v_spin.clear(); 
   dataout.close();
