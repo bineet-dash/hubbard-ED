@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
   int final_exp = 2;
 
   ofstream outfile_freeenergy; string filename,latticedata;
-  latticedata = "_U="+to_string(int(U))+"_size_"+ to_string(size);
+  latticedata = "_U"+to_string(int(U))+"_size"+ to_string(size);
   filename="data/ED_free_energy_vs_temp"+latticedata+"_T_"+to_string(int(10*pow(10,final_exp)))+".txt"; outfile_freeenergy.open(filename);
 
   for(int j=final_exp; j>=initial_exp; j--)

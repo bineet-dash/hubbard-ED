@@ -202,7 +202,7 @@ void show_time(milliseconds begin_ms, milliseconds end_ms, string s)
   {cout << s  << t << "time. Wrong t received.\n"; }
 }
 
-void construct_Ht(MatrixXd& Ht, std::vector<basis> v_spin, char verbose_pref = 'y')
+void construct_Ht(MatrixXd& Ht, std::vector<basis> v_spin, char verbose_pref = 'n')
 {
   milliseconds begin_ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
   Ht = MatrixXd::Zero(v_spin.size(),v_spin.size());
