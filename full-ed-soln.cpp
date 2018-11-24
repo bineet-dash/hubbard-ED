@@ -9,7 +9,7 @@ void check_consistency();
 void select_filling(std::vector<basis>& selected_filling, int fill)
 {
   long int i_min,i_max; i_min=i_max=0;
-  if(fill<=size)
+  // if(fill<=size)
   {
     for(int i=0; i<fill; i++) i_min += pow(2,i);
     for(int i=2*size-fill; i<2*size; i++) i_max += pow(2,i);
@@ -18,9 +18,14 @@ void select_filling(std::vector<basis>& selected_filling, int fill)
       if(inttobin(i).sum()==fill) selected_filling.push_back(basis(i));
     }
   }
+  // else
+  // {
+  //   for(int i=0; i<size; i++) i_min += pow(2,i);
+  //   for()
+  // }
 }
 
-bool sort_pid(pid& x1, pid&x2){return x1.second < x2.second;}
+bool sort_pid(const pid& x1, const pid& x2){return x1.second < x2.second;}
 
 double n_avg(double mu, double beta, vector<pid> eigenvalues)
 {
@@ -30,6 +35,7 @@ double n_avg(double mu, double beta, vector<pid> eigenvalues)
     num += exp(-beta*(i.second-mu*i.first))*i.first;
     denom += exp(-beta*(i.second-mu*i.first));
   } 
+  // cout << num << " " << denom << endl;
   return num/denom;
 }
 
@@ -45,22 +51,20 @@ double get_mu(double T, vector <pid> eigenvalues, double total_fill = size, doub
   {
     mu_mid = (mu_low + mu_high)/2.0;
     double suggested_fill = n_avg(mu_mid, beta, eigenvalues);
-    // cout << suggested_fill << endl;
-    // exit(10);
 
     if(abs(suggested_fill-total_fill)< MU_TOLERANCE)
     {
-      cout << "EXACT  " << suggested_fill << " " << mu_high << " " << mu_mid << " " << mu_low << " " << endl; 
+      cout << suggested_fill << " " << mu_high << " " << mu_mid << " " << mu_low << " " << endl; 
       break;
     }
     else if(suggested_fill < total_fill-MU_TOLERANCE)
     {
-      cout << "LESS " << suggested_fill << " " << mu_high << " " << mu_mid << " " << mu_low << " " << endl; 
+      cout << suggested_fill << " " << mu_high << " " << mu_mid << " " << mu_low << " " << endl; 
       mu_low = mu_mid;
     }
     else
     {
-      cout << "MORE " << suggested_fill << " " << mu_high << " " << mu_mid << " " << mu_low << " " << endl; 
+      cout << suggested_fill << " " << mu_high << " " << mu_mid << " " << mu_low << " " << endl; 
       mu_high = mu_mid;
     }
   }
@@ -75,6 +79,18 @@ vector <pid> rescale(const vector <pid>& eigenvalues, double mu)
   return rescaled_eivals;
 }
 
+double get_free_energy( const vector <pid> & eigenvalues, double temperature, int fill=size)
+{
+  double beta = 1/temperature;
+  sort(eigenvalues.begin(),eigenvalues.end(), sort_pid);
+  double mu = get_mu(0.01, eigenvalues);
+  vector <pid> eivals_minus_mu = rescale(eigenvalues, mu);
+  double rem_F = 0.0;
+  for(auto const& i : eivals_minus_mu) rem_F += exp(beta*(i.second-eivals_minus_mu.front().second));
+  double F = eivals_minus_mu.front().second - temperature*log(rem_F);
+  return F + mu*fill;
+}
+
 int main(int argc, char* argv[])
 {
   cout << "Enter lattice size, U: ";
@@ -82,7 +98,7 @@ int main(int argc, char* argv[])
 
   std::vector<pid> eigenvalues;
 
-  for(int fill = 0; fill<2*size; fill++)
+  for(int fill = 0; fill<=2*size; fill++)
   {
     vector<basis> selected_filling;
     select_filling(selected_filling, fill);
@@ -93,7 +109,7 @@ int main(int argc, char* argv[])
     {
       std::vector<basis> v_spin;
       select_spin(selected_filling, v_spin, sz);
-      // cout << "Spin: " << sz << " sector\n----------------\nsize=" << v_spin.size() << endl;
+      cout << "Spin: " << sz << " sector\n----------------\nsize=" << v_spin.size() << endl;
 
       if(v_spin.size()==0) continue;
 
@@ -111,19 +127,18 @@ int main(int argc, char* argv[])
   }
 
   sort(eigenvalues.begin(),eigenvalues.end(), sort_pid);
-  // for(const auto &i: eigenvalues) cout << i.first << " " << i.second << endl;
-
   double mu = get_mu(0.01, eigenvalues);
-  cout << "mu = " << mu << endl << endl;
+  cout << "mu = " << mu << endl;
 
-  vector <pid> rescaled_eivals = rescale(eigenvalues, mu);
-  for(const auto &i: rescaled_eivals) cout << i.first << " " << i.second << endl;
+  for(auto const& it : eigenvalues) cout << it.second << endl; cout << endl << endl;
+  for(auto const& it : eigenvalues) cout << it.second-mu*it.first << endl;
 
- 
+  cout << get_free_energy(eigenvalues, 0.01) << endl << endl;
 
   ofstream fout; string filename;
   filename = "data/full_ed_eivals_size"+to_string(size)+"_U"+to_string(int(U))+".txt";
   fout.open(filename);
+  for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) fout << (*it).first << " " << (*it).second << endl;
   fout.close();
   eigenvalues.clear();
 
