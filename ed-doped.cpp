@@ -33,7 +33,9 @@ int main(int argc, char* argv[])
   cout << "Enter lattice size, filling, U: ";
   cin >> size >> fill >> U; assert(size%2==0);
 
-  vector<basis> selected_filling; select_filling(selected_filling, fill);
+  vector<basis> selected_filling;
+  select_filling(selected_filling, fill);
+  
   std::vector<basis> v_spin;
   std::vector<double> eigenvalues;
 
@@ -74,7 +76,7 @@ int main(int argc, char* argv[])
 
   eigenvalues.clear();
 
-  check_consistency();
+  // check_consistency();
 
   return 0;
 }
