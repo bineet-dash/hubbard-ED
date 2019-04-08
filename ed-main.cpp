@@ -1,6 +1,5 @@
 #include <fstream>
 #include "ed_library.h"
-#include "common_globals.h"
 
 void check_consistency(void);
 void check_tb_validity(void);

@@ -1,6 +1,5 @@
 #include <fstream>
 #include "ed_library.h"
-#include "common_globals.h"
 
 int main(int argc, char* argv[])
 {

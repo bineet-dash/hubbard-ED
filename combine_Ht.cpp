@@ -15,17 +15,17 @@ using namespace Eigen;
 
 std::string extract_ints(std::ctype_base::mask category, std::string str, std::ctype<char> const& facet)
 {
-    using std::strlen;
+  using std::strlen;
 
-    char const *begin = &str.front(),
-               *end   = &str.back();
+  char const *begin = &str.front(),
+              *end   = &str.back();
 
-    auto res = facet.scan_is(category, begin, end);
+  auto res = facet.scan_is(category, begin, end);
 
-    begin = &res[0];
-    end   = &res[strlen(res)];
+  begin = &res[0];
+  end   = &res[strlen(res)];
 
-    return std::string(begin, end);
+  return std::string(begin, end);
 }
 
 std::string extract_ints(std::string str)

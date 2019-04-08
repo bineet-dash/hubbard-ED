@@ -1,6 +1,5 @@
 #include <fstream>
 #include "ed_library.h"
-#include "common_globals.h"
 // #include <matplotlibcpp.h>
 
 // namespace plt=matplotlibcpp;

@@ -1,7 +1,6 @@
 #include <fstream>
 #include <cstdlib>
 #include "ed_library.h"
-#include "common_globals.h"
 
 typedef std::vector<pair<int,double>> eivec;
 

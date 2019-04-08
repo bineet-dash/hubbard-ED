@@ -2,6 +2,7 @@
 #define _ED_LIBRARY_H_INCLUDED_
 
 #include <iostream>
+#include <fstream>
 #include <Eigen/Dense>
 #include <cmath>
 #include <clocale>
@@ -9,7 +10,10 @@
 #include <lapacke.h>
 #include <chrono>
 #include <thread>
-#include "common_globals.h"
+
+extern int size;
+extern double t;
+extern double U;
 
 int size;
 double t=1;
@@ -18,6 +22,8 @@ double U;
 using namespace std;
 using namespace Eigen;
 using namespace std::chrono;
+
+typedef pair<int,double> pid;
 
 VectorXi inttobin(int theValue)
 {
@@ -72,15 +78,22 @@ int create(VectorXi v, int index, int sigma)
   int ph=0; int vec_size = v.size()/2;
 
   if(sigma==-1)
-   { for(int i=vec_size-1; i>index; i--) ph += v(i)+v(i+vec_size);}
+  { for(int i=vec_size-1; i>index; i--) ph += v(i)+v(i+vec_size);}
   else if(sigma==1)
-   {
-     for(int i=vec_size-1; i>index; i--) ph += v(i);
-     for(int i=v.size()-1; i>=index+vec_size; i--) ph += v(i);
-   }
+  {
+    for(int i=vec_size-1; i>index; i--) ph += v(i);
+    for(int i=v.size()-1; i>=index+vec_size; i--) ph += v(i);
+  }
 
-  if(sigma==-1) index+=vec_size;
-  if(v(index)==0) { v(index)=1; return bintoint(v,pow(-1,ph));}
+  if(sigma==-1)
+  {
+    index+=vec_size;
+  } 
+  if(v(index)==0) 
+  {
+    v(index)=1; 
+    return bintoint(v,pow(-1,ph));
+  }
   else return 0;
 }
 
@@ -95,12 +108,12 @@ int annhilate(VectorXi v, int index, int sigma)
 {
   int ph=0; int vec_size = v.size()/2;
   if(sigma==-1)
-   { for(int i=vec_size-1; i>index; i--) ph += v(i)+v(i+vec_size);}
+  { for(int i=vec_size-1; i>index; i--) ph += v(i)+v(i+vec_size);}
   else if(sigma==1)
-   {
-     for(int i=vec_size-1; i>index; i--) ph += v(i);
-     for(int i=v.size()-1; i>=index+vec_size; i--) ph += v(i);
-   }
+  {
+    for(int i=vec_size-1; i>index; i--) ph += v(i);
+    for(int i=v.size()-1; i>=index+vec_size; i--) ph += v(i);
+  }
   if(sigma==-1) index+=v.size()/2;
   if(v(index)==1) { v(index)=0; return bintoint(v,pow(-1,ph));}
   else return 0;
@@ -169,8 +182,14 @@ public:
 
 void vector_out(std::vector<basis> v) {for(auto it=v.begin(); it!=v.end(); it++) (*it).get_arr('n');}
 
-void select_spin(std::vector<basis> master, std::vector<basis>& v, double spin)
-{ for(auto it=master.begin(); it!=master.end(); it++) if((*it).get_spin()==spin)  v.push_back(*it);}
+void select_spin( std::vector<basis> master, std::vector<basis>& v, double spin)
+{ 
+  for(auto it=master.begin(); it!=master.end(); it++) 
+  {
+    if((*it).get_spin()==spin)
+      v.push_back(*it);
+  }
+}
 
 void select_half_filling(std::vector<basis>& half_filling)
 {
@@ -279,55 +298,97 @@ bool diagonalize(MatrixXd Ac, std::vector<double>& v, MatrixXd& vc)
   return result;
 }
 
-double get_mu(double temperature, std::vector<double> v)
+void select_filling(std::vector<basis>& selected_filling, int fill)
 {
-  sort (v.begin(), v.end());
-  double bisection_up_lim = v.back();
-  double bisection_low_lim = v.front();
-
-  double mu, no_of_electrons; int count=0;
-  double epsilon = 0.000001;
-
-  for(; ;)
+  long int i_min,i_max; i_min=i_max=0;
+  // if(fill<=size)
   {
-    no_of_electrons=0;  count++;
-    mu = 0.5*(bisection_low_lim+bisection_up_lim) ;
-
-    auto it = v.begin();
-    while(no_of_electrons< double(size) && it!=v.end())
+    for(int i=0; i<fill; i++) i_min += pow(2,i);
+    for(int i=2*size-fill; i<2*size; i++) i_max += pow(2,i);
+    for(int i=i_min; i<=i_max; i++)
     {
-      double fermi_func = 1/(exp((*it-mu)/temperature)+1);
-      no_of_electrons += fermi_func;  it++;
+      if(inttobin(i).sum()==fill) selected_filling.push_back(basis(i));
     }
-
-    if(abs(no_of_electrons-size) < epsilon)
-    {
-      return mu; break;
-    }
-    else if(no_of_electrons > size+epsilon)
-      {
-         if(bisection_up_lim == v.front()) break;
-         else {bisection_up_lim=mu;}
-      }
-    else if(no_of_electrons < size-epsilon)
-     {bisection_low_lim=mu;}
   }
+  // else
+  // {
+  //   for(int i=0; i<size; i++) i_min += pow(2,i);
+  //   for()
+  // }
 }
 
-double find_free_energy(double temperature, vector<double> eigenvalues)
-{
-  double partition_func = 0;
-  std::sort (eigenvalues.begin(), eigenvalues.end());
-  double unruly_free_energy= 0;
-  if(isinf(exp(-eigenvalues.at(0)/temperature)))
-  {
-    unruly_free_energy += eigenvalues.at(0);
-    transform(eigenvalues.begin(), eigenvalues.end(), eigenvalues.begin(), bind1st(plus<double>(),-eigenvalues.at(0)));
-  }
-  for(auto it=eigenvalues.begin(); it!=eigenvalues.end(); it++) partition_func += exp(-(*it)/temperature);
+bool sort_pid (const pid& x1, const pid& x2) {return x1.second < x2.second;}
 
-  double free_energy = unruly_free_energy - temperature*log(partition_func);
-  return free_energy;
+vector <pid> rescale(const vector <pid>& eigenvalues, double mu)
+{
+  vector <pid> rescaled_eivals;
+  for(auto const& it : eigenvalues) rescaled_eivals.push_back(make_pair(it.first, it.second-mu*it.first));
+  sort(rescaled_eivals.begin(), rescaled_eivals.end(), sort_pid);
+  return rescaled_eivals;
+}
+
+double n_avg(double mu, double beta, const vector<pid> & eigenvalues)
+{
+  double num = 0.0, denom = 0.0;
+  vector <pid> eivals_minus_mu = rescale(eigenvalues, mu);
+  
+  for(auto const& i: eivals_minus_mu)
+  {
+    num += exp(-beta*(i.second-eivals_minus_mu.front().second))*i.first;
+    denom += exp(-beta*(i.second-eivals_minus_mu.front().second));
+  } 
+  return num/denom;
+}
+
+
+double get_mu(double T, vector <pid> & eigenvalues, double total_fill = size, double MU_TOLERANCE=1e-3)
+{
+  double beta = 1/T;
+  sort(eigenvalues.begin(), eigenvalues.end(), sort_pid);
+  double mu_low = eigenvalues.front().second;
+  double mu_high = eigenvalues.back().second;
+  double mu_mid; 
+  int count = 0;
+
+  while(true)
+  {
+    count++; if(count>10) exit(1);
+    mu_mid = (mu_low + mu_high)/2.0;
+    double suggested_fill = n_avg(mu_mid, beta, eigenvalues);
+
+    if(abs(suggested_fill-total_fill)< MU_TOLERANCE)
+    {
+      // cout << suggested_fill << " " << mu_high << " " << mu_mid << " " << mu_low << " " << endl; 
+      break;
+    }
+    else if(suggested_fill < total_fill-MU_TOLERANCE)
+    {
+      // cout << suggested_fill << " " << mu_high << " " << mu_mid << " " << mu_low << " " << endl; 
+      mu_low = mu_mid;
+    }
+    else
+    {
+      // cout << suggested_fill << " " << mu_high << " " << mu_mid << " " << mu_low << " " << endl; 
+      mu_high = mu_mid;
+    }
+  }
+  return mu_mid;
+}
+
+
+double get_free_energy(vector <pid> eigenvalues, double temperature, int fill=size)
+{
+  double beta = 1/temperature;
+
+  double mu = get_mu(0.01, eigenvalues);
+  vector <pid> eivals_minus_mu = rescale(eigenvalues, mu);
+  double rem_F = 0.0;
+  for(auto const& i : eivals_minus_mu)
+  {
+    rem_F += exp(-beta*(i.second-eivals_minus_mu.front().second));
+  } 
+  double F = eivals_minus_mu.front().second - temperature*log(rem_F) + mu*fill;
+  return F;
 }
 
 #endif
